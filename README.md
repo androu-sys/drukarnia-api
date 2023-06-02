@@ -1,7 +1,7 @@
 # drukarnia-api
 
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/androu-sys/drukarnia-api/blob/aac75e2b8f63500ac70bce5244cbf507bf973b73/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/androu-sys/drukarnia-api/LICENSE)
 
 ## Overview
 `drukarnia-api` is a Python library designed as a wrapper for the ***Drukarnia API***, which provides various functionalities for interacting with the Drukarnia platform. It simplifies the process of accessing and manipulating data from the ***Drukarnia API***, allowing users to integrate Drukarnia's features seamlessly into their applications.
