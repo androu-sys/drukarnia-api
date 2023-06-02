@@ -1,4 +1,4 @@
-from connection import GetRequest
+from drukarnia_api.connection import GetRequest
 import asyncio
 
 from aiohttp import ClientSession

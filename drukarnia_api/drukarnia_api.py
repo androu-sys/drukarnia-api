@@ -1,8 +1,8 @@
 from aiohttp import ClientSession
 from fake_useragent import UserAgent
 
-from author import Author
-from article import Article
+from drukarnia_api.author import Author
+from drukarnia_api.article import Article
 
 
 class DrukarniaAPI:
