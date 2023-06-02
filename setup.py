@@ -12,10 +12,14 @@ HERE = path.abspath(path.dirname(__file__))
 with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+# Get requirements
+with open(path.join(HERE, 'requirements.txt')) as f:
+    requirements = f.read().splitlines()
+
 # This call to setup() does all the work
 setup(
     name="drukarnia-api",
-    version="0.1.1",
+    version="0.1.2",
     description="wrapper for the Drukarnia API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,7 +37,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["drukarnia-api"],
+    packages=["drukarnia_api"],
     include_package_data=True,
-    install_requires=find_packages('requirements.txt')
+    install_requires=requirements
 )
