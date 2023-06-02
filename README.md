@@ -8,7 +8,7 @@
 
 Please note that the library is currently in its early development stages and supports only information search. However, future updates will expand its capabilities to include posting articles, comments, and more.
 
-For a detailed overview of the available functionalities and how to use them, please refer to the [***Functionality Overview File***]([overview.ipynb](https://github.com/androu-sys/drukarnia-api/overview.ipynb)).
+For a detailed overview of the available functionalities and how to use them, please refer to the [***Functionality Overview File***](https://github.com/androu-sys/drukarnia-api/overview.ipynb).
 
 ## Installation
 You can install `drukarnia-api` using pip:
