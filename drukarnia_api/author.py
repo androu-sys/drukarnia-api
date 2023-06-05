@@ -1,101 +1,82 @@
-from drukarnia_api.connection import GetRequest
+from drukarnia_api.connection import Connection
 import asyncio
 
-from aiohttp import ClientSession
-from typing import List
+from typing import Iterable, List, Any
+from datetime import datetime
 
 
-class Author:
-    session = None
-    data = None
+class Author(Connection):
+    _id: str = None
 
-    def collect_followers(self, batch_size: int = 5) -> List['Author']:
-        if '_id' not in self.data:
-            raise ValueError('Author data does not contain _id.')
+    avatar: str = None
+    name: str = None
+    username: str = None
+    description: str = None
+    descriptionShort: str = None
 
-        elif not self.session:
-            raise ValueError('Author session is not initialized.')
+    readNum: int = None
 
-        api_request = '/api/relationships/{user_id}/followers?'.format(user_id=self.data['_id'])
+    followingNum: int = None
+    followingAuthors: List['Author' or dict] = None
 
-        all_followers = []
-        iter_ = 0
+    followersNum: int = None
+    followersAuthors: List['Author' or dict] = None
 
-        while True:
-            api_requests = [api_request + f'page={page}'
-                            for page in range(iter_ * batch_size + 1,
-                                              (iter_ + 1) * batch_size + 1)]
+    authorTags: List[str] = None
+    createdAt: datetime = None
+    socials: List[str] = None
+    donateUrl: str = None
 
-            loop = asyncio.get_event_loop()
-            follower_pages = loop.run_until_complete(
-                GetRequest.get_pool(self.session, api_requests)
-            )
+    articles: List[dict] = None
 
-            follower_pages = [page for page in follower_pages if page]
+    relationships: List[Any] = None
 
-            new_followers = [Author.from_data(session=self.session, data=follower)
-                             for page in follower_pages
-                             for follower in page]
+    def __init__(self, username: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-            all_followers.extend(new_followers)
-            iter_ += 1
+        self.username = username
 
-            if len(follower_pages) != batch_size:
-                break
+    async def collect_followers(self, return_: bool = False, create_authors: bool = True,
+                                *args, **kwargs) -> Iterable['Author']:
+        request_url = '/api/relationships/{user_id}/followers?'.format(user_id=self.data['_id'])
 
-        return all_followers
+        # Make a request to get the followings of the author
+        results = await super().search(request_url, *args, **kwargs)
 
-    def collect_followings(self, batch_size: int = 5) -> List['Author']:
-        if '_id' not in self.data:
-            raise ValueError('Author data does not contain _id.')
+        if create_authors:
+            # Create Author objects for each follower and store them in self.followers
+            self.followersAuthors = [Author(self.session, data=result) for result in results]
 
-        elif not self.session:
-            raise ValueError('Author session is not initialized.')
+        else:
+            self.followersAuthors = results
 
-        api_request = '/api/relationships/{user_id}/following?'.format(user_id=self.data['_id'])
+        if return_:
+            return self.followersAuthors
 
-        all_followings = []
-        iter_ = 0
+    async def collect_followings(self, return_: bool = False, create_authors: bool = True,
+                                 *args, **kwargs) -> Iterable['Author']:
+        request_url = '/api/relationships/{user_id}/following?'.format(user_id=self.data['_id'])
+        params
 
-        while True:
-            api_requests = [api_request + f'page={page}'
-                            for page in range(iter_ * batch_size + 1,
-                                              (iter_ + 1) * batch_size + 1)]
+        # Make a request to get the followings of the author
+        results = await super().search(request_url, *args, **kwargs)
 
-            loop = asyncio.get_event_loop()
-            followings_pages = loop.run_until_complete(
-                GetRequest.get_pool(self.session, api_requests)
-            )
+        if create_authors:
+            # Create Author objects for each following and store them in self.followings
+            self.followingAuthors = [Author(self.session, data=result) for result in results]
 
-            followings_pages = [page for page in followings_pages if page]
+        else:
+            self.followingAuthors = results
 
-            new_followings = [Author.from_data(session=self.session, data=following)
-                              for page in followings_pages
-                              for following in page]
+        if return_:
+            return self.followingAuthors
 
-            all_followings.extend(new_followings)
-            iter_ += 1
+    async def get_author_data(self, return_: bool = False) -> dict or None:
+        request_url = '/api/users/profile/{username}'.format(username=self.username)
 
-            if len(followings_pages) != batch_size:
-                break
+        data = await super().get_json(request_url)
 
-        return all_followings
+        self.__dict__.update(data)
 
-    @staticmethod
-    def find_author(session: ClientSession, username) -> 'Author':
-        url = '/api/users/profile/{username}'.format(username=username)
-
-        loop = asyncio.get_event_loop()
-        data = loop.run_until_complete(GetRequest.get(session, url))
-
-        author = Author()
-        author.session, author.data = session, data
-
-        return author
-
-    @staticmethod
-    def from_data(session: ClientSession, data: dict) -> 'Author':
-        author = Author()
-        author.session, author.data = session, data
-
-        return author
+        if return_:
+            return data

@@ -14,7 +14,7 @@ For a detailed overview of the available functionalities and how to use them, pl
 You can install `drukarnia-api` using pip:
 
 ```bash
-pip install drukarnia-api==0.1.61
+pip install drukarnia-api
 ```
 
 ## Contributing
