@@ -1,12 +1,9 @@
-from warnings import warn
-import asyncio
 import re
-
-from drukarnia_api.connection import Connection
-
-
 from typing import Iterable, Any
+import asyncio
 from aiohttp import ClientSession
+from warnings import warn
+from .connection import Connection
 
 
 class Author(Connection):
@@ -35,7 +32,7 @@ class Author(Connection):
 
         self.__authenticated = False
 
-    async def login(self, password: str, email: str):
+    async def login(self, email: str, password: str):
         data = await self.post_json('/api/users/login',
                                     data={'password': password, 'email': email},
                                     include_header=True)
@@ -48,61 +45,73 @@ class Author(Connection):
         self.session._default_headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
         self.__authenticated = True
 
-    async def get_followers(self, *args, **kwargs) -> Iterable['Author']:
+    async def is_authenticated(self):
+        if not self.__authenticated:
+            raise ValueError('This data requires authentication. Call the login method')
+
+    async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
+                            n_collect: int = None, *args, **kwargs) -> Iterable['Author']:
         if self._id is None:
-            raise ValueError("User id is a mandatory attribute for followers scrapper. "
-                             "Call collect_data method before using _id required methods")
+            raise ValueError("User id is a mandatory attribute for followers request. "
+                             "Call the collect_data method before using methods that require _id")
 
         request_url = '/api/relationships/{user_id}/followers'.format(user_id=self._id)
 
-        def synthesizer(url):
-            start_page = 1
+        # Make a request to get the followers of the author
+        followers = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
 
-            while True:
-                yield {'url': url, 'params': {'page': start_page}}
-                start_page += 1
+        if create_authors:
+            # Create Author objects for each follower and store them in self.followers
+            followers = await asyncio.gather(*[
+                Author.from_records(self.session, **follower) for follower in followers
+            ])
 
-        # Make a request to get the followings of the author
-        followers = await super().run_until_no_stop(synthesizer(request_url), lambda r: r != [], *args, **kwargs)
+        return followers
 
-        # Create Author objects for each follower and store them in self.followers
-        return await asyncio.gather(*[Author.from_records(self.session, **follower[0]) for follower in followers])
-
-    async def get_followings(self, *args, **kwargs) -> Iterable['Author']:
+    async def get_followings(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
+                             n_collect: int = None, *args, **kwargs) -> Iterable['Author']:
         if self._id is None:
-            raise ValueError("User id is a mandatory attribute for followers scrapper. "
-                             "Call collect_data method before using _id required methods")
+            raise ValueError("User id is a mandatory attribute for followings request. "
+                             "Call the collect_data method before using methods that require _id")
 
-        request_url = '/api/relationships/{user_id}/followings'.format(user_id=self._id)
-
-        def synthesizer(url):
-            start_page = 1
-
-            while True:
-                yield {'url': url, 'params': {'page': start_page}}
-                start_page += 1
+        request_url = '/api/relationships/{user_id}/following'.format(user_id=self._id)
 
         # Make a request to get the followings of the author
-        followings = await super().run_until_no_stop(synthesizer(request_url), lambda r: r != [], *args, **kwargs)
+        followings = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
 
-        # Create Author objects for each follower and store them in self.followers
-        return await asyncio.gather(*[Author.from_records(self.session, **following[0]) for following in followings])
+        if create_authors:
+            # Create Author objects for each following and store them in self.followings
+            followings = await asyncio.gather(*[
+                Author.from_records(self.session, **following) for following in followings
+            ])
 
-    async def get_notifications(self, *args, **kwargs) -> Iterable[Any]:
-        request_url = '/api/notifications'
+        return followings
 
-        def synthesizer(url):
-            start_page = 1
+    async def get_notifications(self, offset: int = 0, results_per_page: int = 20,
+                                n_collect: int = None, *args, **kwargs) -> Iterable[Any]:
+        await self.is_authenticated()
 
-            while True:
-                yield {'url': url, 'params': {'page': start_page}}
-                start_page += 1
-
-        notifications = await self.run_until_no_stop(synthesizer(request_url),
-                                                     lambda r: r != [],
-                                                     *args, **kwargs)
+        notifications = await self.multi_page_request('/api/notifications', offset, results_per_page,
+                                                      n_collect, *args, **kwargs)
 
         return notifications
+
+    async def get_reads_history(self, offset: int = 0, results_per_page: int = 20,
+                                n_collect: int = None, *args, **kwargs) -> Iterable[Any]:
+        await self.is_authenticated()
+
+        reads_history = await self.multi_page_request('/api/stats/reads/history', offset, results_per_page,
+                                                      n_collect, *args, **kwargs)
+
+        return reads_history
+
+    async def get_sections(self, preview: bool = True, *args, **kwargs) -> Iterable[Any]:
+        await self.is_authenticated()
+
+        sections = await self.get_json(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
+                                       *args, **kwargs)
+
+        return sections
 
     async def collect_data(self, return_: bool = False) -> dict or None:
         request_url = '/api/users/profile/{username}'.format(username=self.username)
@@ -125,15 +134,5 @@ class Author(Connection):
 
         return new_author
 
-
-if __name__ == '__main__':
-    author = Author('truman')
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(author.collect_data())
-
-    followings = loop.run_until_complete(author.get_followings())
-    print(len(followings))
-
-    print(followings[0].name)
-
+    def __hash__(self):
+        return hash(self._id or self.username)
