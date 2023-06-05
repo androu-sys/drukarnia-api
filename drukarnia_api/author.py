@@ -4,8 +4,9 @@ import re
 
 from drukarnia_api.connection import Connection
 
+
 from typing import Iterable, List, Any, Dict
-from datetime import datetime
+from aiohttp import ClientSession
 
 
 class Author(Connection):
@@ -47,7 +48,25 @@ class Author(Connection):
         self.session._default_headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
         self.__authenticated = True
 
-    async def get_followers(self, *args, **kwargs):
+    async def get_followers(self, *args, **kwargs) -> Iterable['Author']:
+        if self._id is None:
+            raise ValueError("User id is a mandatory attribute for followers scrapper. "
+                             "Call collect_data method before using _id required methods")
+
+        request_url = '/api/relationships/{user_id}/followers'.format(user_id=self._id)
+
+        def synthesizer(url):
+            start_page = 1
+
+            while True:
+                yield {'url': url, 'params': {'page': start_page}}
+                start_page += 1
+
+        # Make a request to get the followings of the author
+        followers = await super().run_until_no_stop(synthesizer(request_url), lambda r: r != [], *args, **kwargs)
+        print(followers)
+        # Create Author objects for each follower and store them in self.followers
+        return await asyncio.gather(*[Author.from_records(self.session, **follower) for follower in followers])
 
     async def get_notifications(self, *args, **kwargs) -> Iterable[Any]:
         request_url = '/api/notifications'
@@ -78,13 +97,23 @@ class Author(Connection):
         if return_:
             return data
 
+    @staticmethod
+    async def from_records(session: ClientSession, username: str, **kwargs) -> 'Author':
+        new_author = Author(username=username, session=session)
+        new_author.__dict__ = {key: kwargs.get(key, value)
+                               for key, value in new_author.__dict__.items()}
+
+        return new_author
+
 
 if __name__ == '__main__':
     author = Author('truman')
 
     loop = asyncio.get_event_loop()
+    loop.run_until_complete(author.collect_data())
 
-    loop.run_until_complete(author.login(password='topciz-3haxPo-mezvuz', email='pantry.gene.0y@icloud.com'))
+    followers = loop.run_until_complete(author.get_followers())
+    print(len(followers))
 
-    print(loop.run_until_complete(author.get_notifications()))
+    print(followers[0].username)
 

@@ -35,6 +35,8 @@ class Connection:
         Sends a GET request and retrieves JSON data.
         """
 
+        print(url, params)
+
         async with self.session.get(url, params=params, *args, **kwargs) as response:
             result = await response.json()
 
