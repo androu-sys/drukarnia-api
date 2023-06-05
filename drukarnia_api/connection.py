@@ -35,8 +35,6 @@ class Connection:
         Sends a GET request and retrieves JSON data.
         """
 
-        print(url, params)
-
         async with self.session.get(url, params=params, *args, **kwargs) as response:
             result = await response.json()
 
@@ -95,12 +93,12 @@ class Connection:
             heuristics = [next(request_synthesizer) for _ in range(step, step+batch_size)]
 
             _results = await self.get_pool(heuristics=heuristics)
-            _results = [result for result in _results if stop_action(result)]
-            all_results.extend(_results)
+            pages = [page for page in _results if stop_action(page)]
+            all_results.extend(pages)
 
             step += batch_size
 
-            if len(_results) != batch_size:
+            if len(pages) != batch_size:
                 break
 
             elif (n_pages is not None) and (step == n_pages):

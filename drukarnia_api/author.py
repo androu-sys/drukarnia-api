@@ -5,7 +5,7 @@ import re
 from drukarnia_api.connection import Connection
 
 
-from typing import Iterable, List, Any, Dict
+from typing import Iterable, Any
 from aiohttp import ClientSession
 
 
@@ -64,9 +64,29 @@ class Author(Connection):
 
         # Make a request to get the followings of the author
         followers = await super().run_until_no_stop(synthesizer(request_url), lambda r: r != [], *args, **kwargs)
-        print(followers)
+
         # Create Author objects for each follower and store them in self.followers
-        return await asyncio.gather(*[Author.from_records(self.session, **follower) for follower in followers])
+        return await asyncio.gather(*[Author.from_records(self.session, **follower[0]) for follower in followers])
+
+    async def get_followings(self, *args, **kwargs) -> Iterable['Author']:
+        if self._id is None:
+            raise ValueError("User id is a mandatory attribute for followers scrapper. "
+                             "Call collect_data method before using _id required methods")
+
+        request_url = '/api/relationships/{user_id}/followings'.format(user_id=self._id)
+
+        def synthesizer(url):
+            start_page = 1
+
+            while True:
+                yield {'url': url, 'params': {'page': start_page}}
+                start_page += 1
+
+        # Make a request to get the followings of the author
+        followings = await super().run_until_no_stop(synthesizer(request_url), lambda r: r != [], *args, **kwargs)
+
+        # Create Author objects for each follower and store them in self.followers
+        return await asyncio.gather(*[Author.from_records(self.session, **following[0]) for following in followings])
 
     async def get_notifications(self, *args, **kwargs) -> Iterable[Any]:
         request_url = '/api/notifications'
@@ -112,8 +132,8 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(author.collect_data())
 
-    followers = loop.run_until_complete(author.get_followers())
-    print(len(followers))
+    followings = loop.run_until_complete(author.get_followings())
+    print(len(followings))
 
-    print(followers[0].username)
+    print(followings[0].name)
 
