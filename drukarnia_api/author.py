@@ -2,8 +2,8 @@ import re
 from typing import Iterable, Any
 import asyncio
 from aiohttp import ClientSession
-from warnings import warn
-from .connection import Connection
+from drukarnia_api.connection import Connection
+from inspect import currentframe
 
 
 class Author(Connection):
@@ -11,31 +11,31 @@ class Author(Connection):
         super().__init__(*args, **kwargs)
 
         self._id = _id
-
+        self.password = None
+        self.email = None
         self.name = None
         self.username = username
         self.description = None
         self.descriptionShort = None
-
         self.avatar = None
-
         self.readNum = None
         self.followingNum = None
         self.followersNum = None
-
         self.authorTags = None
         self.createdAt = None
         self.socials = None
         self.donateUrl = None
-
         self.articles = None
-
         self.__authenticated = False
 
-    async def login(self, email: str, password: str):
-        data = await self.post_json('/api/users/login',
-                                    data={'password': password, 'email': email},
-                                    include_header=True)
+    async def login(self, email: str, password: str) -> None:
+        """
+        Log in the author with the provided email and password.
+        """
+
+        data = await self.post('/api/users/login',
+                               data={'password': password, 'email': email},
+                               output='headers')
 
         data = str(data)
 
@@ -45,15 +45,36 @@ class Author(Connection):
         self.session._default_headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
         self.__authenticated = True
 
-    async def is_authenticated(self):
+        self.password = password
+        self.email = email
+
+    async def is_authenticated(self) -> None:
+        """
+        Check if the author is authenticated.
+        """
+
         if not self.__authenticated:
             raise ValueError('This data requires authentication. Call the login method')
 
+    async def control_params(self, *args) -> None:
+        """
+        Validate the required fields for processing a specific method.
+        """
+
+        calling_by = currentframe().f_back.f_code.co_name
+
+        for name in args:
+            if not self.__dict__.get(name, None):
+                raise ValueError(f'field {name} is required to process {calling_by}. Usually required data can be'
+                                 f'obtained by calling collect_data method first.')
+
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                             n_collect: int = None, *args, **kwargs) -> Iterable['Author']:
-        if self._id is None:
-            raise ValueError("User id is a mandatory attribute for followers request. "
-                             "Call the collect_data method before using methods that require _id")
+        """
+        Get the followers of the author.
+        """
+
+        await self.control_params('_id')
 
         request_url = '/api/relationships/{user_id}/followers'.format(user_id=self._id)
 
@@ -70,9 +91,11 @@ class Author(Connection):
 
     async def get_followings(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                              n_collect: int = None, *args, **kwargs) -> Iterable['Author']:
-        if self._id is None:
-            raise ValueError("User id is a mandatory attribute for followings request. "
-                             "Call the collect_data method before using methods that require _id")
+        """
+        Get the followings of the author.
+        """
+
+        await self.control_params('_id')
 
         request_url = '/api/relationships/{user_id}/following'.format(user_id=self._id)
 
@@ -88,7 +111,11 @@ class Author(Connection):
         return followings
 
     async def get_notifications(self, offset: int = 0, results_per_page: int = 20,
-                                n_collect: int = None, *args, **kwargs) -> Iterable[Any]:
+                                n_collect: int = None, *args, **kwargs) -> Iterable[list or dict]:
+        """
+        Get the notifications of the author.
+        """
+
         await self.is_authenticated()
 
         notifications = await self.multi_page_request('/api/notifications', offset, results_per_page,
@@ -97,7 +124,11 @@ class Author(Connection):
         return notifications
 
     async def get_reads_history(self, offset: int = 0, results_per_page: int = 20,
-                                n_collect: int = None, *args, **kwargs) -> Iterable[Any]:
+                                n_collect: int = None, *args, **kwargs) -> Iterable[list or dict]:
+        """
+        Get the reading history of the author.
+        """
+
         await self.is_authenticated()
 
         reads_history = await self.multi_page_request('/api/stats/reads/history', offset, results_per_page,
@@ -105,21 +136,98 @@ class Author(Connection):
 
         return reads_history
 
-    async def get_sections(self, preview: bool = True, *args, **kwargs) -> Iterable[Any]:
+    async def get_sections(self, preview: bool = True, *args, **kwargs) -> Iterable[list or dict]:
+        """
+        Get the sections of the author's articles.
+        """
         await self.is_authenticated()
 
-        sections = await self.get_json(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
-                                       *args, **kwargs)
+        sections = await self.get(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
+                                  output='json', *args, **kwargs)
 
         return sections
 
+    async def create_section(self, name: str, **kwargs) -> Any:
+        """
+        Create a new section for the author's articles.
+        """
+
+        await self.is_authenticated()
+
+        return await self.post('/api/articles/bookmarks/lists', data={"name": name}, output='text', **kwargs)
+
+    async def delete_section(self, section_id: str, **kwargs) -> Any:
+        """
+        Delete a section for the author's articles.
+        """
+
+        await self.is_authenticated()
+
+        return await self.delete(f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
+
+    async def get_blocked(self) -> Iterable[list or dict]:
+        """
+        Get the authors blocked by the current author.
+        """
+
+        await self.is_authenticated()
+
+        return await self.get('/api/relationships/blocked')
+
+    async def username_exists(self, username: str) -> bool:
+        """
+        Check if the given username exists.
+        """
+
+        return bool(await self.get('/api/users/username', params={'username': username}, output='read'))
+
+    async def change_password(self, new_password: str, **kwargs) -> Any:
+        """
+        Change the author's password.
+        """
+
+        await self.is_authenticated()
+
+        return await self.patch(f'/api/users/login/password',
+                                data={"oldPassword": self.password,
+                                      "newPassword": new_password},
+                                **kwargs)
+
+    async def change_user_info(self, name: str = None, description: str = None, username: str = None,
+                               description_short: str = None, socials: dict = None, donate_url: str = None):
+        """
+        Change the author's user information.
+        """
+
+        await self.is_authenticated()
+
+        data = {"name": name, "description": description, "username": username,
+                "descriptionShort": description_short,
+                "socials": socials, "donateUrl": donate_url}
+        data = {key: value for key, value in data.items() if value is not None}
+
+        return await self.patch('/api/users', data=data, output='read')
+
+    async def change_email(self, new_email: str, **kwargs) -> Any:
+        """
+        Change the author's email.
+        """
+
+        await self.is_authenticated()
+
+        return await self.patch(f'/api/users/login/email',
+                                data={"currentPassword": self.password,
+                                      "newEmail": new_email},
+                                **kwargs)
+
     async def collect_data(self, return_: bool = False) -> dict or None:
+        """
+        Collect the author's data and update the object's attributes.
+        """
+
         request_url = '/api/users/profile/{username}'.format(username=self.username)
 
-        data = await super().get_json(request_url)
-        if not data:
-            warn('No new data was found')
-
+        data = await self.get(request_url, output='json')
         self.__dict__ = {key: data.get(key, value)
                          for key, value in self.__dict__.items()}
 
@@ -128,6 +236,10 @@ class Author(Connection):
 
     @staticmethod
     async def from_records(session: ClientSession, username: str, **kwargs) -> 'Author':
+        """
+        Create an Author instance from records.
+        """
+
         new_author = Author(username=username, session=session)
         new_author.__dict__ = {key: kwargs.get(key, value)
                                for key, value in new_author.__dict__.items()}
@@ -136,3 +248,12 @@ class Author(Connection):
 
     def __hash__(self):
         return hash(self._id or self.username)
+
+
+author = Author('grinch')
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
+loop.run_until_complete(author.collect_data())
+
+print(loop.run_until_complete(author.change_user_info(name='hahah')))
