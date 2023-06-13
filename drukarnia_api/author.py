@@ -11,8 +11,6 @@ class Author(Connection):
         super().__init__(*args, **kwargs)
 
         self._id = _id
-        self.password = None
-        self.email = None
         self.name = None
         self.username = username
         self.description = None
@@ -44,9 +42,6 @@ class Author(Connection):
 
         self.session._default_headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
         self.__authenticated = True
-
-        self.password = password
-        self.email = email
 
     async def is_authenticated(self) -> None:
         """
@@ -181,7 +176,7 @@ class Author(Connection):
 
         return bool(await self.get('/api/users/username', params={'username': username}, output='read'))
 
-    async def change_password(self, new_password: str, **kwargs) -> Any:
+    async def change_password(self, old_password: str, new_password: str, **kwargs) -> Any:
         """
         Change the author's password.
         """
@@ -189,7 +184,7 @@ class Author(Connection):
         await self.is_authenticated()
 
         return await self.patch(f'/api/users/login/password',
-                                data={"oldPassword": self.password,
+                                data={"oldPassword": old_password,
                                       "newPassword": new_password},
                                 **kwargs)
 
@@ -208,7 +203,7 @@ class Author(Connection):
 
         return await self.patch('/api/users', data=data, output='read')
 
-    async def change_email(self, new_email: str, **kwargs) -> Any:
+    async def change_email(self, current_password: str, new_email: str, **kwargs) -> Any:
         """
         Change the author's email.
         """
@@ -216,7 +211,7 @@ class Author(Connection):
         await self.is_authenticated()
 
         return await self.patch(f'/api/users/login/email',
-                                data={"currentPassword": self.password,
+                                data={"currentPassword": current_password,
                                       "newEmail": new_email},
                                 **kwargs)
 
