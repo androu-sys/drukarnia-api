@@ -1,14 +1,16 @@
 class DrukarniaException(Exception):
-    def __init__(self, message: str, code: int or str, request_type: str, request_url: str):
+    def __init__(self, message: str, status_code: int or str, request_type: str, request_url: str):
 
-        text = """
-        Request Type: {request_type}; Status Code: {code}\n
-        Request To: {request_url}\n
-        \n
-        Error: {message}
-        """
-
-        self.message = text.format(request_type=request_type, code=code, request_url=request_url, message=message)
+        self.message = message
+        self.status_code = status_code
+        self.request_type = request_type
+        self.request_url = request_url
 
     def __str__(self):
-        return self.message
+
+        text = f"""
+        \nRequest Type: {self.request_type}; Response Status: {self.status_code};
+        \nRequest To: {self.request_url}; \nError Message: "{self.message}";
+        """
+
+        return text
