@@ -2,7 +2,7 @@ import re
 from typing import Iterable, Any
 import asyncio
 from aiohttp import ClientSession
-from drukarnia_api.connection import Connection
+from drukarnia_api.connection.connection import Connection
 from inspect import currentframe
 
 
@@ -24,6 +24,7 @@ class Author(Connection):
         self.socials = None
         self.donateUrl = None
         self.articles = None
+
         self.__authenticated = False
 
     async def login(self, email: str, password: str) -> None:
@@ -40,7 +41,7 @@ class Author(Connection):
         token = re.search(r'refreshToken=(.*?);', data).group(1)
         device_id = re.search(r'deviceId=(.*?);', data).group(1)
 
-        self.session._default_headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
+        self._headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
         self.__authenticated = True
 
     async def is_authenticated(self) -> None:
@@ -49,7 +50,7 @@ class Author(Connection):
         """
 
         if not self.__authenticated:
-            raise ValueError('This data requires authentication. Call the login method')
+            raise ValueError('This data requires authentication. Call the login method before.')
 
     async def control_params(self, *args) -> None:
         """
@@ -189,7 +190,7 @@ class Author(Connection):
                                 **kwargs)
 
     async def change_user_info(self, name: str = None, description: str = None, username: str = None,
-                               description_short: str = None, socials: dict = None, donate_url: str = None):
+                               description_short: str = None, socials: dict = None, donate_url: str = None) -> None:
         """
         Change the author's user information.
         """
@@ -201,7 +202,7 @@ class Author(Connection):
                 "socials": socials, "donateUrl": donate_url}
         data = {key: value for key, value in data.items() if value is not None}
 
-        return await self.patch('/api/users', data=data, output='read')
+        await self.patch('/api/users', data=data, output=[])
 
     async def change_email(self, current_password: str, new_email: str, **kwargs) -> Any:
         """
@@ -232,19 +233,19 @@ class Author(Connection):
             return data
 
     @staticmethod
-    async def from_records(session: ClientSession, username: str, **kwargs) -> 'Author':
+    async def from_records(session: ClientSession, **kwargs) -> 'Author':
         """
         Create an Author instance from records.
         """
 
-        new_author = Author(username=username, session=session)
+        new_author = Author(session=session)
         new_author.__dict__ = {key: kwargs.get(key, value)
                                for key, value in new_author.__dict__.items()}
 
         return new_author
 
     @staticmethod
-    async def create_user(*args, **kwargs) -> 'Author':
+    async def create_user(*args, **kwargs) -> Any:
         print('this function is in development')
         # TODO
 
@@ -259,4 +260,4 @@ if __name__ == '__main__':
     loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
     loop.run_until_complete(author.collect_data())
 
-    print(loop.run_until_complete(author.change_user_info(name='hahah')))
+    print(loop.run_until_complete(author.change_user_info(name='bruh it works')))
