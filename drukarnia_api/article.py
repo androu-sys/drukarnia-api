@@ -1,8 +1,8 @@
-import re
-from typing import Iterable, Any
 import asyncio
+from warnings import warn
+
 from aiohttp import ClientSession
-from drukarnia_api.connection import Connection
+from drukarnia_api.connection.connection import Connection
 from inspect import currentframe
 
 
@@ -36,6 +36,12 @@ class Article(Connection):
         self.recommendedArticles = None
         self.comments = None
 
+    async def is_authenticated(self):
+        if not self.session.headers.get('Cookie', None):
+            warn('We were not able to locate cookie files in your session data. It may cause errors for'
+                 ' this function. Provide your own header with cookies or user Author.login before creat'
+                 'ing Article object')
+
     async def control_params(self, *args) -> None:
         """
         Validate the required fields for processing a specific method.
@@ -48,12 +54,68 @@ class Article(Connection):
                 raise ValueError(f'field {name} is required to process {calling_by}. Usually required data can be'
                                  f'obtained by calling collect_data method first.')
 
-    async def like(self, n_likes: int) -> None:
+    async def post_comment(self, comment_text: str) -> str:
+
+        """example of comment_text: <p>Дякую, <strong>дуже</strong> цікаво<em>!</em></p>"""
+
         await self.control_params('_id')
+        await self.is_authenticated()
+
+        request_url = '/api/articles/{_id}/comments'.format(_id=self._id)
+
+        posted_comment_id = await self.post(request_url, {'comment': comment_text}, 'read')
+        return str(posted_comment_id)
+
+    async def reply2comment(self, comment_id: str, rootComment: str, rootCommentOwner: str, replyToUser: str) -> str:
+        await self.control_params('_id')
+        await self.is_authenticated()
+
+        request_url = '/api/articles/{_id}/comments/{comment_id}/replies'.format(_id=self._id, comment_id=comment_id)
+        data = {"comment": "❤️", "replyToComment": comment_id, "rootComment": rootComment,
+                "rootCommentOwner": rootCommentOwner, "replyToUser": replyToUser}
+
+        posted_comment_id = await self.post(request_url, data, 'read')
+        return str(posted_comment_id)
+
+    async def delete_comment(self, comment_id: str) -> None:
+        await self.control_params('_id')
+        await self.is_authenticated()
+
+        request_url = '/api/articles/{_id}/comments/{comment_id}'.format(_id=self._id, comment_id=comment_id)
+
+        await self.delete(request_url, [])
+
+    async def like_comment(self, comment_id: str, delete: bool = False) -> None:
+        await self.control_params('_id')
+        await self.is_authenticated()
+
+        request_url = '/api/articles/{_id}/comments/{comment_id}/likes'.format(_id=self._id, comment_id=comment_id)
+
+        if delete:
+            await self.delete(request_url, [])
+
+        else:
+            await self.post(request_url, {}, [])
+
+    async def like_article(self, n_likes: int) -> None:
+        await self.control_params('_id')
+        await self.is_authenticated()
 
         request_url = '/api/articles/{_id}/like'.format(_id=self._id)
 
-        return await self.post(request_url, {'likes': n_likes}, 'read')
+        await self.post(request_url, {'likes': n_likes}, 'read')
+
+    async def bookmark(self, section_id: str) -> None:
+        await self.control_params('_id')
+        await self.is_authenticated()
+
+        await self.post('/api/articles/bookmarks', {"article": self._id, "list": section_id}, [])
+
+    async def unbookmark(self) -> None:
+        await self.control_params('_id')
+        await self.is_authenticated()
+
+        await self.delete(f'/api/articles/{self._id}/bookmarks', [])
 
     async def collect_data(self, return_: bool = False) -> dict or None:
         """
@@ -85,3 +147,16 @@ class Article(Connection):
 
     def __hash__(self):
         return hash(self._id or self.slug)
+
+
+if __name__ == '__main__':
+    from drukarnia_api.author import Author
+    author = Author('grinch')
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
+
+    article = Article(session=author.session, _id='648614fe280f442102d35859')
+
+    print(loop.run_until_complete(article.like_article(5)))
+

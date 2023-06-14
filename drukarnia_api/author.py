@@ -1,6 +1,8 @@
 import re
 from typing import Iterable, Any
 import asyncio
+from warnings import warn
+
 from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
 from inspect import currentframe
@@ -41,7 +43,7 @@ class Author(Connection):
         token = re.search(r'refreshToken=(.*?);', data).group(1)
         device_id = re.search(r'deviceId=(.*?);', data).group(1)
 
-        self._headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
+        self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
         self.__authenticated = True
 
     async def is_authenticated(self) -> None:
@@ -50,7 +52,7 @@ class Author(Connection):
         """
 
         if not self.__authenticated:
-            raise ValueError('This data requires authentication. Call the login method before.')
+            warn('This data requires authentication. Call the login method before.')
 
     async def control_params(self, *args) -> None:
         """
@@ -247,17 +249,7 @@ class Author(Connection):
     @staticmethod
     async def create_user(*args, **kwargs) -> Any:
         print('this function is in development')
-        # TODO
+        ## TODO
 
     def __hash__(self):
         return hash(self._id or self.username)
-
-
-if __name__ == '__main__':
-    author = Author('grinch')
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
-    loop.run_until_complete(author.collect_data())
-
-    print(loop.run_until_complete(author.change_user_info(name='bruh it works')))

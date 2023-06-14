@@ -12,7 +12,7 @@ async def _from_response(response: ClientResponse, output: str or List[str]) -> 
     Extracts data from the response object based on the specified output format.
     """
 
-    if 400 < int(response.status):
+    if int(response.status) not in [200, 201]:
         data = await response.json()
         raise DrukarniaException(data['message'])
 
@@ -50,26 +50,26 @@ class Connection:
         Initializes a Connection object.
         """
 
-        self._headers = {}
-        if headers:
-            self._headers = headers
-
-        if create_user_agent:
-            self._headers['User-Agent'] = UserAgent().random
-
         # save the aiohttp session
         if session:
             self.session = session
 
         else:
-            self.session = ClientSession(base_url=self.base_url, *args, **kwargs)
+            headers_ = {}
+            if headers:
+                headers_ = headers
+
+            if create_user_agent:
+                headers_['User-Agent'] = UserAgent().random
+
+            self.session = ClientSession(base_url=self.base_url, headers=headers_, *args, **kwargs)
 
     async def get(self, url: str, params: dict = None,
                   output: str or list = 'json', *args, **kwargs) -> dict or tuple:
         """
         Sends a GET request and returns the response data based on the specified output format.
         """
-        async with self.session.get(url, headers=self._headers, params=params, *args, **kwargs) as response:
+        async with self.session.get(url, params=params, *args, **kwargs) as response:
             return await _from_response(response, output)
 
     async def patch(self, url: str, data: dict = None,
@@ -77,7 +77,7 @@ class Connection:
         """
         Sends a PATCH request and returns the response data based on the specified output format.
         """
-        async with self.session.patch(url, headers=self._headers, data=data, **kwargs) as response:
+        async with self.session.patch(url, data=data, **kwargs) as response:
             return await _from_response(response, output)
 
     async def post(self, url: str, data: dict = None,
@@ -85,14 +85,14 @@ class Connection:
         """
         Sends a POST request and returns the response data based on the specified output format.
         """
-        async with self.session.post(url, headers=self._headers, data=data, **kwargs) as response:
+        async with self.session.post(url, data=data, **kwargs) as response:
             return await _from_response(response, output)
 
     async def delete(self, url: str, output: str or list = 'read', **kwargs):
         """
         Sends a DELETE request and returns the response data based on the specified output format.
         """
-        async with self.session.delete(url, headers=self._headers, **kwargs) as response:
+        async with self.session.delete(url, **kwargs) as response:
             return await _from_response(response, output)
 
     async def request_pool(self, heuristics: Iterable[dict]) -> Iterable:
