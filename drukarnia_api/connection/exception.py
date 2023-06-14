@@ -8,6 +8,7 @@ class DrukarniaException(Exception):
         Error: {message}
         """
 
-        text = text.format(request_type=request_type, code=code, request_url=request_url, message=message)
+        self.message = text.format(request_type=request_type, code=code, request_url=request_url, message=message)
 
-        super().__init__(text)
+    def __str__(self):
+        return self.message
