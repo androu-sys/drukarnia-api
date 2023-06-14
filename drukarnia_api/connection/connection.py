@@ -72,6 +72,14 @@ class Connection:
         async with self.session.get(url, params=params, *args, **kwargs) as response:
             return await _from_response(response, output)
 
+    async def put(self, url: str, params: dict = None,
+                  output: str or list = 'json', *args, **kwargs) -> dict or tuple:
+        """
+        Sends a PUT request and returns the response data based on the specified output format.
+        """
+        async with self.session.put(url, params=params, *args, **kwargs) as response:
+            return await _from_response(response, output)
+
     async def patch(self, url: str, data: dict = None,
                     output: str or list = 'json', **kwargs) -> dict or tuple:
         """

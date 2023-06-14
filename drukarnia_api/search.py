@@ -1,8 +1,6 @@
 import asyncio
 from typing import Iterable
-from warnings import warn
 
-from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
 from drukarnia_api.author import Author
 from drukarnia_api.article import Article

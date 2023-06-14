@@ -133,6 +133,12 @@ class Article(Connection):
         if return_:
             return data
 
+    async def create_article(self, *args, **kwargs) -> 'Article':
+
+        pass
+
+        ## TODO
+
     @staticmethod
     async def from_records(session: ClientSession, **kwargs) -> 'Article':
         """

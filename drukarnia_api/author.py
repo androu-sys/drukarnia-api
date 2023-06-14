@@ -251,5 +251,10 @@ class Author(Connection):
         print('this function is in development')
         ## TODO
 
+    @staticmethod
+    async def delete_user(*args, **kwargs) -> Any:
+        print('this function is in development')
+        ## TODO
+
     def __hash__(self):
         return hash(self._id or self.username)
