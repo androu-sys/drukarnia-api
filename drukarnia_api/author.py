@@ -7,12 +7,12 @@ from inspect import currentframe
 
 
 class Author(Connection):
-    def __init__(self, username: str, _id: str = None, *args, **kwargs):
+    def __init__(self, username: str = None, _id: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._id = _id
-        self.name = None
         self.username = username
+        self.name = None
         self.description = None
         self.descriptionShort = None
         self.avatar = None
@@ -149,7 +149,7 @@ class Author(Connection):
 
         await self.is_authenticated()
 
-        return await self.post('/api/articles/bookmarks/lists', data={"name": name}, output='text', **kwargs)
+        return await self.post('/api/articles/bookmarks/lists', data={"name": name}, output='read', **kwargs)
 
     async def delete_section(self, section_id: str, **kwargs) -> Any:
         """
@@ -220,6 +220,8 @@ class Author(Connection):
         Collect the author's data and update the object's attributes.
         """
 
+        await self.control_params('username')
+
         request_url = '/api/users/profile/{username}'.format(username=self.username)
 
         data = await self.get(request_url, output='json')
@@ -241,14 +243,20 @@ class Author(Connection):
 
         return new_author
 
+    @staticmethod
+    async def create_user(*args, **kwargs) -> 'Author':
+        print('this function is in development')
+        # TODO
+
     def __hash__(self):
         return hash(self._id or self.username)
 
 
-author = Author('grinch')
+if __name__ == '__main__':
+    author = Author('grinch')
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
-loop.run_until_complete(author.collect_data())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
+    loop.run_until_complete(author.collect_data())
 
-print(loop.run_until_complete(author.change_user_info(name='hahah')))
+    print(loop.run_until_complete(author.change_user_info(name='hahah')))
