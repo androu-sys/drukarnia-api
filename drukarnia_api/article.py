@@ -36,12 +36,6 @@ class Article(Connection):
         self.recommendedArticles = None
         self.comments = None
 
-    async def is_authenticated(self):
-        if not self.session.headers.get('Cookie', None):
-            warn('We were not able to locate cookie files in your session data. It may cause errors for'
-                 ' this function. Provide your own header with cookies or user Author.login before creat'
-                 'ing Article object')
-
     async def control_params(self, *args) -> None:
         """
         Validate the required fields for processing a specific method.
@@ -133,12 +127,6 @@ class Article(Connection):
         if return_:
             return data
 
-    async def create_article(self, *args, **kwargs) -> 'Article':
-
-        pass
-
-        ## TODO
-
     @staticmethod
     async def from_records(session: ClientSession, **kwargs) -> 'Article':
         """
@@ -160,7 +148,7 @@ if __name__ == '__main__':
     author = Author('grinch')
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
+    # loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
 
     article = Article(session=author.session, _id='648614fe280f442102d35859')
 

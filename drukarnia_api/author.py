@@ -1,7 +1,6 @@
 import re
 from typing import Iterable, Any
 import asyncio
-from warnings import warn
 
 from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
@@ -27,8 +26,6 @@ class Author(Connection):
         self.donateUrl = None
         self.articles = None
 
-        self.__authenticated = False
-
     async def login(self, email: str, password: str) -> None:
         """
         Log in the author with the provided email and password.
@@ -44,15 +41,6 @@ class Author(Connection):
         device_id = re.search(r'deviceId=(.*?);', data).group(1)
 
         self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
-        self.__authenticated = True
-
-    async def is_authenticated(self) -> None:
-        """
-        Check if the author is authenticated.
-        """
-
-        if not self.__authenticated:
-            warn('This data requires authentication. Call the login method before.')
 
     async def control_params(self, *args) -> None:
         """
@@ -245,16 +233,6 @@ class Author(Connection):
                                for key, value in new_author.__dict__.items()}
 
         return new_author
-
-    @staticmethod
-    async def create_user(*args, **kwargs) -> Any:
-        print('this function is in development')
-        ## TODO
-
-    @staticmethod
-    async def delete_user(*args, **kwargs) -> Any:
-        print('this function is in development')
-        ## TODO
 
     def __hash__(self):
         return hash(self._id or self.username)

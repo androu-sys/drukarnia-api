@@ -12,9 +12,12 @@ async def _from_response(response: ClientResponse, output: str or List[str]) -> 
     Extracts data from the response object based on the specified output format.
     """
 
-    if int(response.status) not in [200, 201]:
+    if response.status not in [200, 201]:
         data = await response.json()
-        raise DrukarniaException(data['message'])
+        raise DrukarniaException(data['message'],
+                                 response.status,
+                                 response.request_info.method,
+                                 str(response.request_info.url))
 
     if isinstance(output, str):
         data = await _from_response(response, [output])
@@ -63,6 +66,14 @@ class Connection:
                 headers_['User-Agent'] = UserAgent().random
 
             self.session = ClientSession(base_url=self.base_url, headers=headers_, *args, **kwargs)
+
+    async def is_authenticated(self) -> None:
+        """
+        Check if the headers contains Cookie.
+        """
+
+        if 'Cookie' not in self.session.headers:
+            warn("Cookie data was not indentify, it may cause an error for this request")
 
     async def get(self, url: str, params: dict = None,
                   output: str or list = 'json', *args, **kwargs) -> dict or tuple:

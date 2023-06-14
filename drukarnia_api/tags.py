@@ -14,12 +14,6 @@ class Tag(Connection):
         self._id = _id
         self.name = name
 
-    async def is_authenticated(self):
-        if not self.session.headers.get('Cookie', None):
-            warn('We were not able to locate cookie files in your session data. It may cause errors for'
-                 ' this function. Provide your own header with cookies or user Author.login before creat'
-                 'ing Article object')
-
     async def control_params(self, *args) -> None:
         """
         Validate the required fields for processing a specific method.
@@ -67,6 +61,18 @@ class Tag(Connection):
         articles = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
 
         return articles
+
+    @staticmethod
+    async def from_records(session: ClientSession, **kwargs) -> 'Tag':
+        """
+        Create an Author instance from records.
+        """
+
+        new_tag = Tag(session=session)
+        new_tag.__dict__ = {key: kwargs.get(key, value)
+                            for key, value in new_tag.__dict__.items()}
+
+        return new_tag
 
     def __hash__(self):
         return hash(self._id or self.name)
