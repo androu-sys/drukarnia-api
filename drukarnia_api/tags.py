@@ -1,10 +1,6 @@
-import asyncio
 from typing import Iterable
-from warnings import warn
-
 from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
-from inspect import currentframe
 
 
 class Tag(Connection):
@@ -14,17 +10,9 @@ class Tag(Connection):
         self._id = _id
         self.name = name
 
-    async def control_params(self, *args) -> None:
-        """
-        Validate the required fields for processing a specific method.
-        """
-
-        calling_by = currentframe().f_back.f_code.co_name
-
-        for name in args:
-            if not self.__dict__.get(name, None):
-                raise ValueError(f'field {name} is required to process {calling_by}. Usually required data can be'
-                                 f'obtained by calling collect_data method first.')
+    async def _control_attr(self, attr: str) -> None:
+        if getattr(self, attr) is None:
+            raise ValueError(f'{attr} is required. If you don\'t now it, call collect_data method before')
 
     async def subscribe(self) -> None:
         await self.is_authenticated()
@@ -53,7 +41,7 @@ class Tag(Connection):
         Get the followers of the author.
         """
 
-        await self.control_params('_id')
+        await self._control_attr('_id')
 
         request_url = '/api/articles/tags/{name}'.format(name=self.name)
 

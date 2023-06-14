@@ -59,3 +59,10 @@ class Search(Connection):
             ])
 
         return tags
+
+    async def username_exists(self, username: str) -> bool:
+        """
+        Check if the given username exists.
+        """
+
+        return bool(await self.get('/api/users/username', params={'username': username}, output='read'))

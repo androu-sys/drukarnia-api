@@ -1,9 +1,7 @@
 import asyncio
-from warnings import warn
 
 from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
-from inspect import currentframe
 
 
 class Article(Connection):
@@ -36,23 +34,15 @@ class Article(Connection):
         self.recommendedArticles = None
         self.comments = None
 
-    async def control_params(self, *args) -> None:
-        """
-        Validate the required fields for processing a specific method.
-        """
-
-        calling_by = currentframe().f_back.f_code.co_name
-
-        for name in args:
-            if not self.__dict__.get(name, None):
-                raise ValueError(f'field {name} is required to process {calling_by}. Usually required data can be'
-                                 f'obtained by calling collect_data method first.')
+    async def _control_attr(self, attr: str) -> None:
+        if getattr(self, attr) is None:
+            raise ValueError(f'{attr} is required. If you don\'t now it, call collect_data method before')
 
     async def post_comment(self, comment_text: str) -> str:
 
         """example of comment_text: <p>Дякую, <strong>дуже</strong> цікаво<em>!</em></p>"""
 
-        await self.control_params('_id')
+        await self._control_attr('_id')
         await self.is_authenticated()
 
         request_url = '/api/articles/{_id}/comments'.format(_id=self._id)
@@ -60,19 +50,20 @@ class Article(Connection):
         posted_comment_id = await self.post(request_url, {'comment': comment_text}, 'read')
         return str(posted_comment_id)
 
-    async def reply2comment(self, comment_id: str, rootComment: str, rootCommentOwner: str, replyToUser: str) -> str:
-        await self.control_params('_id')
+    async def reply2comment(self, comment_id: str, root_comment: str,
+                            root_comment_owner: str, reply2user: str) -> str:
+        await self._control_attr('_id')
         await self.is_authenticated()
 
         request_url = '/api/articles/{_id}/comments/{comment_id}/replies'.format(_id=self._id, comment_id=comment_id)
-        data = {"comment": "❤️", "replyToComment": comment_id, "rootComment": rootComment,
-                "rootCommentOwner": rootCommentOwner, "replyToUser": replyToUser}
+        data = {"comment": "❤️", "replyToComment": comment_id, "rootComment": root_comment,
+                "rootCommentOwner": root_comment_owner, "replyToUser": reply2user}
 
         posted_comment_id = await self.post(request_url, data, 'read')
         return str(posted_comment_id)
 
     async def delete_comment(self, comment_id: str) -> None:
-        await self.control_params('_id')
+        await self._control_attr('_id')
         await self.is_authenticated()
 
         request_url = '/api/articles/{_id}/comments/{comment_id}'.format(_id=self._id, comment_id=comment_id)
@@ -80,7 +71,7 @@ class Article(Connection):
         await self.delete(request_url, [])
 
     async def like_comment(self, comment_id: str, delete: bool = False) -> None:
-        await self.control_params('_id')
+        await self._control_attr('_id')
         await self.is_authenticated()
 
         request_url = '/api/articles/{_id}/comments/{comment_id}/likes'.format(_id=self._id, comment_id=comment_id)
@@ -92,31 +83,28 @@ class Article(Connection):
             await self.post(request_url, {}, [])
 
     async def like_article(self, n_likes: int) -> None:
-        await self.control_params('_id')
+        await self._control_attr('_id')
         await self.is_authenticated()
 
         request_url = '/api/articles/{_id}/like'.format(_id=self._id)
 
         await self.post(request_url, {'likes': n_likes}, 'read')
 
-    async def bookmark(self, section_id: str) -> None:
-        await self.control_params('_id')
+    async def bookmark(self, section_id: str, unbookmark: bool = False) -> None:
+        await self._control_attr('_id')
         await self.is_authenticated()
 
-        await self.post('/api/articles/bookmarks', {"article": self._id, "list": section_id}, [])
+        if unbookmark:
+            await self.delete(f'/api/articles/{self._id}/bookmarks', [])
 
-    async def unbookmark(self) -> None:
-        await self.control_params('_id')
-        await self.is_authenticated()
-
-        await self.delete(f'/api/articles/{self._id}/bookmarks', [])
+        else:
+            await self.post('/api/articles/bookmarks', {"article": self._id, "list": section_id}, [])
 
     async def collect_data(self, return_: bool = False) -> dict or None:
         """
         Collect the article's data and update the object's attributes.
         """
-
-        await self.control_params('slug')
+        await self._control_attr('username')
 
         request_url = '/api/articles/{slug}'.format(slug=self.slug)
 
@@ -148,9 +136,8 @@ if __name__ == '__main__':
     author = Author('grinch')
 
     loop = asyncio.get_event_loop()
-    # loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
+    loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
 
     article = Article(session=author.session, _id='648614fe280f442102d35859')
 
     print(loop.run_until_complete(article.like_article(5)))
-

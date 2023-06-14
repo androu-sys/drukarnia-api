@@ -4,7 +4,6 @@ import asyncio
 
 from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
-from inspect import currentframe
 
 
 class Author(Connection):
@@ -42,25 +41,16 @@ class Author(Connection):
 
         self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
 
-    async def control_params(self, *args) -> None:
-        """
-        Validate the required fields for processing a specific method.
-        """
-
-        calling_by = currentframe().f_back.f_code.co_name
-
-        for name in args:
-            if not self.__dict__.get(name, None):
-                raise ValueError(f'field {name} is required to process {calling_by}. Usually required data can be'
-                                 f'obtained by calling collect_data method first.')
+    async def _control_attr(self, attr: str) -> None:
+        if getattr(self, attr) is None:
+            raise ValueError(f'{attr} is required. If you don\'t now it, call collect_data method before')
 
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                             n_collect: int = None, *args, **kwargs) -> Iterable['Author']:
         """
         Get the followers of the author.
         """
-
-        await self.control_params('_id')
+        await self._control_attr('_id')
 
         request_url = '/api/relationships/{user_id}/followers'.format(user_id=self._id)
 
@@ -81,7 +71,7 @@ class Author(Connection):
         Get the followings of the author.
         """
 
-        await self.control_params('_id')
+        await self._control_attr('_id')
 
         request_url = '/api/relationships/{user_id}/following'.format(user_id=self._id)
 
@@ -160,13 +150,6 @@ class Author(Connection):
 
         return await self.get('/api/relationships/blocked')
 
-    async def username_exists(self, username: str) -> bool:
-        """
-        Check if the given username exists.
-        """
-
-        return bool(await self.get('/api/users/username', params={'username': username}, output='read'))
-
     async def change_password(self, old_password: str, new_password: str, **kwargs) -> Any:
         """
         Change the author's password.
@@ -211,7 +194,7 @@ class Author(Connection):
         Collect the author's data and update the object's attributes.
         """
 
-        await self.control_params('username')
+        await self._control_attr('username')
 
         request_url = '/api/users/profile/{username}'.format(username=self.username)
 
