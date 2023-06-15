@@ -80,6 +80,7 @@ class Connection:
         """
         Sends a GET request and returns the response data based on the specified output format.
         """
+
         async with self.session.get(url, params=params, *args, **kwargs) as response:
             return await _from_response(response, output)
 
@@ -171,7 +172,7 @@ class Connection:
                 yield [{'url': direct_url, 'params': {'page': start_page}}, 'get']
                 start_page += 1
 
-        n_results = n_collect // results_per_page + int(n_collect % results_per_page != 0) if n_collect else None
+        n_results = (n_collect // results_per_page + int(n_collect % results_per_page != 0)) if n_collect else None
 
         data = await self.run_until_no_stop(request_synthesizer=synthesizer(),
                                             not_stop_until=lambda result: result != [],

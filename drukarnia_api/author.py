@@ -1,6 +1,7 @@
 import re
 from typing import Iterable, Any
 import asyncio
+from warnings import warn
 
 from aiohttp import ClientSession
 from drukarnia_api.connection.connection import Connection
@@ -30,14 +31,25 @@ class Author(Connection):
         Log in the author with the provided email and password.
         """
 
-        data = await self.post('/api/users/login',
-                               data={'password': password, 'email': email},
-                               output='headers')
+        headers, info = await self.post('/api/users/login',
+                                        data={'password': password, 'email': email},
+                                        output=['headers', 'json'])
 
-        data = str(data)
+        if self._id and (self._id != info['user']['_id']):
+            raise ValueError('You try to log into unrelated author')
 
-        token = re.search(r'refreshToken=(.*?);', data).group(1)
-        device_id = re.search(r'deviceId=(.*?);', data).group(1)
+        elif self.username and (self.username != info['user']['username']):
+            raise ValueError('You try to log into unrelated author')
+
+        elif not (self._id or self.username):
+            warn("We weren't able to indentify any relationship between current Author data and the Druakrnia "
+                 "User you are trying to log into. It may cause unexpected and fatal errors. Please consider "
+                 "initializing Author class with username or _id. Alternatively run collect_data method before!")
+
+        headers = str(headers)
+
+        token = re.search(r'refreshToken=(.*?);', headers).group(1)
+        device_id = re.search(r'deviceId=(.*?);', headers).group(1)
 
         self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
 

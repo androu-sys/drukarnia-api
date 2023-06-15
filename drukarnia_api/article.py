@@ -133,11 +133,20 @@ class Article(Connection):
 
 if __name__ == '__main__':
     from drukarnia_api.author import Author
-    author = Author('grinch')
+    author = Author('digitalowltop')
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
+    # loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
 
-    article = Article(session=author.session, _id='648614fe280f442102d35859')
+    loop.run_until_complete(author.collect_data())
 
-    print(loop.run_until_complete(article.like_article(5)))
+    import time
+
+    st = time.time()
+    loop.run_until_complete(
+        author.get_followers(create_authors=True,
+            offset=0, n_collect=20
+        )
+    )
+
+    print(time.time() - st)
