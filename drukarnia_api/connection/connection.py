@@ -67,14 +67,6 @@ class Connection:
 
             self.session = ClientSession(base_url=self.base_url, headers=headers_, *args, **kwargs)
 
-    async def is_authenticated(self) -> None:
-        """
-        Check if the headers contains Cookie.
-        """
-
-        if 'Cookie' not in self.session.headers:
-            warn("Cookie data was not indentify, it may cause an error for this request")
-
     async def get(self, url: str, params: dict = None,
                   output: str or list = 'json', *args, **kwargs) -> dict or tuple:
         """

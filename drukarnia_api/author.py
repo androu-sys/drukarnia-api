@@ -4,10 +4,10 @@ import asyncio
 from warnings import warn
 
 from aiohttp import ClientSession
-from drukarnia_api.connection.connection import Connection
+from drukarnia_api.drukarnia_base.element import DrukarniaElement
 
 
-class Author(Connection):
+class Author(DrukarniaElement):
     def __init__(self, username: str = None, _id: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -39,10 +39,6 @@ class Author(Connection):
         device_id = re.search(r'deviceId=(.*?);', headers).group(1)
 
         self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
-
-    async def _control_attr(self, attr: str) -> None:
-        if getattr(self, attr) is None:
-            raise ValueError(f'{attr} is required. If you don\'t now it, call collect_data method before')
 
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                             n_collect: int = None, *args, **kwargs) -> Iterable['Author']:
@@ -230,16 +226,6 @@ class Author(Connection):
 
         if return_:
             return data
-
-    def _get_basetype_from_author_data(self, key, type_='int'):
-        import builtins
-
-        n = self.author_data.get(key, None)
-        return getattr(builtins, type_)(n) if n else None
-
-    def _get_str_from_author_data(self, key):
-        n = self.author_data.get(key, None)
-        return str(n) if n else None
 
     @property
     def username(self):
