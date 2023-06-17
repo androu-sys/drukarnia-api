@@ -17,7 +17,6 @@ class Author(DrukarniaElement):
         """
         Log in the author with the provided email and password.
         """
-
         headers, info = await self.post('/api/users/login',
                                         data={'password': password, 'email': email},
                                         output=['headers', 'json'])
@@ -35,7 +34,6 @@ class Author(DrukarniaElement):
                  "method first!")
 
         headers = str(headers)
-
         token = re.search(r'refreshToken=(.*?);', headers).group(1)
         device_id = re.search(r'deviceId=(.*?);', headers).group(1)
 
@@ -48,10 +46,9 @@ class Author(DrukarniaElement):
         """
         self._control_attr('author_id')
 
-        request_url = '/api/relationships/{user_id}/followers'.format(user_id=self.author_id)
-
         # Make a request to get the followers of the author
-        followers = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
+        followers = await self.multi_page_request(f'/api/relationships/{self.author_id}/followers',
+                                                  offset, results_per_page, n_collect, *args, **kwargs)
 
         if create_authors:
             followers = await data2authors(followers, self.session)
@@ -63,13 +60,11 @@ class Author(DrukarniaElement):
         """
         Get the followings of the author.
         """
-
         self._control_attr('author_id')
 
-        request_url = '/api/relationships/{user_id}/following'.format(user_id=self.author_id)
-
         # Make a request to get the followings of the author
-        followings = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
+        followings = await self.multi_page_request(f'/api/relationships/{self.author_id}/following',
+                                                   offset, results_per_page, n_collect, *args, **kwargs)
 
         if create_authors:
             followings = await data2authors(followings, self.session)
@@ -82,7 +77,6 @@ class Author(DrukarniaElement):
         """
         Get the notifications of the author.
         """
-
         return await self.multi_page_request('/api/notifications',
                                              offset, results_per_page, n_collect,
                                              *args, **kwargs)
@@ -102,7 +96,6 @@ class Author(DrukarniaElement):
         """
         Get the sections of the author's articles.
         """
-
         return await self.get(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
                               output='json', *args, **kwargs)
 
@@ -148,7 +141,6 @@ class Author(DrukarniaElement):
         """
         Change the author's password.
         """
-
         return await self.patch(f'/api/users/login/password',
                                 data={"oldPassword": old_password, "newPassword": new_password},
                                 output='read', **kwargs)
@@ -159,7 +151,6 @@ class Author(DrukarniaElement):
         """
         Change the author's user information.
         """
-
         info2patch = {"name": name, "description": description, "username": username,
                       "descriptionShort": description_short,
                       "socials": socials, "donateUrl": donate_url}
@@ -174,7 +165,6 @@ class Author(DrukarniaElement):
         """
         Change the author's email.
         """
-
         return await self.patch(f'/api/users/login/email',
                                 data={"currentPassword": current_password, "newEmail": new_email},
                                 output='read', **kwargs)
@@ -183,7 +173,6 @@ class Author(DrukarniaElement):
         """
         Collect the author's data and update the object's attributes.
         """
-
         self._control_attr('username')
 
         data = await self.get('/api/users/profile/{username}'.format(username=self.username),
@@ -259,10 +248,8 @@ class Author(DrukarniaElement):
         """
         Create an Author instance from records.
         """
-
         new_author = Author(session=session)
         new_author._update_data(new_data)
-
         return new_author
 
     def __hash__(self):
