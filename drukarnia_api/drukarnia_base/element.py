@@ -1,3 +1,4 @@
+from typing import Any
 from warnings import warn
 import inspect
 from drukarnia_api.drukarnia_base.connection import Connection
@@ -5,19 +6,12 @@ from drukarnia_api.drukarnia_base.exceptions import DrukarniaElementDataError
 
 
 class DrukarniaElement(Connection):
-    def __init__(self, username: str = None, _id: str = None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.author_data: dict = {'username': username, '_id': _id}
+        self.all_collected_data = {}
 
-    async def is_authenticated(self) -> None:
-        """
-        Check if the headers contain a Cookie.
-        """
-        if 'Cookie' not in self.session.headers:
-            warn("Cookie data was not identified, it may cause an error for this request")
-
-    async def _control_attr(self, attr: str, solution: str = 'call collect_data before') -> None:
+    def _control_attr(self, attr: str, solution: str = 'call collect_data before') -> None:
         """
         Check if the specified attribute exists and raise an error if it is None.
         """
@@ -26,18 +20,43 @@ class DrukarniaElement(Connection):
         if getattr(self, attr) is None:
             raise DrukarniaElementDataError(attr, caller_name, solution)
 
-    def _get_basetype_from_author_data(self, key, type_='int'):
+    def _get_basetype_from_author_data(self, key: str, type_: Any = int, default: Any = 'auto'):
         """
         Get the value of the specified key from the author data dictionary and cast it to the specified type.
         """
-        import builtins
 
-        n = self.author_data.get(key, None)
-        return getattr(builtins, type_)(n) if n else None
+        if default == 'auto':
+            default = type_()
 
-    def _get_str_from_author_data(self, key):
-        """
-        Get the value of the specified key from the author data dictionary and convert it to a string.
-        """
-        n = self.author_data.get(key, None)
-        return str(n) if n else None
+        n = self._access_data(key, default)
+        return type_(n) if n != default else n
+
+    def _get_datetime_from_author_data(self, key: str):
+        from datetime import datetime
+
+        date = self._access_data(key)
+
+        if date:
+            date = datetime.fromisoformat(date[:-1])
+
+        return date
+
+    def _update_data(self, new_data: dict):
+        self.all_collected_data.update(new_data)
+
+    def _access_data(self, key: str, default: Any = None):
+        return self.all_collected_data.get(key, default)
+
+    @staticmethod
+    def _is_authenticated(func):
+        def wrapper(self_instance, *args, **kwargs):
+            """
+            Check if the headers contain a Cookie.
+            """
+
+            if 'Cookie' not in self_instance.session.headers:
+                warn("Cookie data was not identified, it may cause an error for this request")
+
+            return func(self_instance, *args, **kwargs)
+
+        return wrapper

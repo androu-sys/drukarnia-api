@@ -218,9 +218,3 @@ class Connection:
         Closes the aiohttp session.
         """
         await self.session.close()
-
-    def __delete__(self):
-        """
-        Deletes the Connection object and closes the session.
-        """
-        asyncio.create_task(self.close_session())

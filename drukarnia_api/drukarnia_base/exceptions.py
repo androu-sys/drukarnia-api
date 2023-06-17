@@ -52,3 +52,4 @@ class DrukarniaElementDataError(Exception):
         """
 
         return text
+

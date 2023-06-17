@@ -1,17 +1,17 @@
 import re
-from typing import Iterable, Any
-import asyncio
+from typing import Iterable, Any, Dict, List
 from warnings import warn
 
 from aiohttp import ClientSession
 from drukarnia_api.drukarnia_base.element import DrukarniaElement
+from drukarnia_api.shortcuts.class_generator import data2authors, data2articles     # data2tags
 
 
 class Author(DrukarniaElement):
     def __init__(self, username: str = None, author_id: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.author_data: dict = {'username': username, '_id': author_id}
+        self._update_data({'username': username, '_id': author_id})
 
     async def login(self, email: str, password: str) -> None:
         """
@@ -46,7 +46,7 @@ class Author(DrukarniaElement):
         """
         Get the followers of the author.
         """
-        await self._control_attr('author_id')
+        self._control_attr('author_id')
 
         request_url = '/api/relationships/{user_id}/followers'.format(user_id=self.author_id)
 
@@ -54,10 +54,7 @@ class Author(DrukarniaElement):
         followers = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
 
         if create_authors:
-            # Create Author objects for each follower and store them in self.followers
-            followers = await asyncio.gather(*[
-                Author.from_records(self.session, follower_data) for follower_data in followers
-            ])
+            followers = await data2authors(followers, self.session)
 
         return followers
 
@@ -67,7 +64,7 @@ class Author(DrukarniaElement):
         Get the followings of the author.
         """
 
-        await self._control_attr('author_id')
+        self._control_attr('author_id')
 
         request_url = '/api/relationships/{user_id}/following'.format(user_id=self.author_id)
 
@@ -75,120 +72,93 @@ class Author(DrukarniaElement):
         followings = await self.multi_page_request(request_url, offset, results_per_page, n_collect, *args, **kwargs)
 
         if create_authors:
-            # Create Author objects for each following and store them in self.followings
-            followings = await asyncio.gather(*[
-                Author.from_records(self.session, following_data) for following_data in followings
-            ])
+            followings = await data2authors(followings, self.session)
 
         return followings
 
+    @DrukarniaElement._is_authenticated
     async def get_notifications(self, offset: int = 0, results_per_page: int = 20,
                                 n_collect: int = None, *args, **kwargs) -> Iterable[list or dict]:
         """
         Get the notifications of the author.
         """
 
-        await self.is_authenticated()
+        return await self.multi_page_request('/api/notifications',
+                                             offset, results_per_page, n_collect,
+                                             *args, **kwargs)
 
-        notifications = await self.multi_page_request('/api/notifications', offset, results_per_page,
-                                                      n_collect, *args, **kwargs)
-
-        return notifications
-
+    @DrukarniaElement._is_authenticated
     async def get_reads_history(self, offset: int = 0, results_per_page: int = 20,
                                 n_collect: int = None, *args, **kwargs) -> Iterable[list or dict]:
         """
         Get the reading history of the author.
         """
+        return await self.multi_page_request('/api/stats/reads/history',
+                                             offset, results_per_page, n_collect,
+                                             *args, **kwargs)
 
-        await self.is_authenticated()
-
-        reads_history = await self.multi_page_request('/api/stats/reads/history', offset, results_per_page,
-                                                      n_collect, *args, **kwargs)
-
-        return reads_history
-
+    @DrukarniaElement._is_authenticated
     async def get_sections(self, preview: bool = True, *args, **kwargs) -> Iterable[list or dict]:
         """
         Get the sections of the author's articles.
         """
-        await self.is_authenticated()
 
-        sections = await self.get(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
-                                  output='json', *args, **kwargs)
+        return await self.get(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
+                              output='json', *args, **kwargs)
 
-        return sections
-
+    @DrukarniaElement._is_authenticated
     async def create_section(self, name: str, **kwargs) -> Any:
         """
         Create a new section for the author's articles.
         """
-
-        await self.is_authenticated()
-
         return await self.post('/api/articles/bookmarks/lists', data={"name": name}, output='read', **kwargs)
 
+    @DrukarniaElement._is_authenticated
     async def delete_section(self, section_id: str, **kwargs) -> Any:
         """
         Delete a section for the author's articles.
         """
-
-        await self.is_authenticated()
-
         return await self.delete(f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
 
+    @DrukarniaElement._is_authenticated
     async def subscribe(self, author_id: str, unsubscribe: bool = False) -> None:
-        await self.is_authenticated()
-
-        request_url = f'/api/relationships/subscribe/{author_id}'
-
         if unsubscribe:
-            await self.delete(request_url)
+            await self.delete(f'/api/relationships/subscribe/{author_id}')
             return None
 
-        await self.post(request_url)
+        await self.post(f'/api/relationships/subscribe/{author_id}')
 
+    @DrukarniaElement._is_authenticated
     async def block(self, author_id: str, unblock: bool = False) -> None:
-        await self.is_authenticated()
-
-        request_url = f'/api/relationships/block/{author_id}'
-
         if unblock:
-            await self.patch(request_url)
+            await self.patch(f'/api/relationships/block/{author_id}')
             return None
 
-        await self.put(request_url)
+        await self.put(f'/api/relationships/block/{author_id}')
 
+    @DrukarniaElement._is_authenticated
     async def get_blocked(self) -> Iterable[list or dict]:
         """
         Get the authors blocked by the current author.
         """
-
-        await self.is_authenticated()
-
         return await self.get('/api/relationships/blocked')
 
+    @DrukarniaElement._is_authenticated
     async def change_password(self, old_password: str, new_password: str, **kwargs) -> str:
         """
         Change the author's password.
         """
 
-        await self.is_authenticated()
+        return await self.patch(f'/api/users/login/password',
+                                data={"oldPassword": old_password, "newPassword": new_password},
+                                output='read', **kwargs)
 
-        response = await self.patch(f'/api/users/login/password',
-                                    data={"oldPassword": old_password, "newPassword": new_password},
-                                    output='read',
-                                    **kwargs)
-
-        return response
-
+    @DrukarniaElement._is_authenticated
     async def change_user_info(self, name: str = None, description: str = None, username: str = None,
                                description_short: str = None, socials: dict = None, donate_url: str = None) -> str:
         """
         Change the author's user information.
         """
-
-        await self.is_authenticated()
 
         info2patch = {"name": name, "description": description, "username": username,
                       "descriptionShort": description_short,
@@ -199,30 +169,26 @@ class Author(DrukarniaElement):
         response = await self.patch('/api/users', data=info2patch, output='read')
         return response
 
+    @DrukarniaElement._is_authenticated
     async def change_email(self, current_password: str, new_email: str, **kwargs) -> str:
         """
         Change the author's email.
         """
 
-        await self.is_authenticated()
-
-        response = await self.patch(f'/api/users/login/email',
-                                    data={"currentPassword": current_password, "newEmail": new_email},
-                                    output='read',
-                                    **kwargs)
-
-        return response
+        return await self.patch(f'/api/users/login/email',
+                                data={"currentPassword": current_password, "newEmail": new_email},
+                                output='read', **kwargs)
 
     async def collect_data(self, return_: bool = False) -> dict or None:
         """
         Collect the author's data and update the object's attributes.
         """
 
-        await self._control_attr('username')
+        self._control_attr('username')
 
-        request_url = '/api/users/profile/{username}'.format(username=self.username)
+        data = await self.get('/api/users/profile/{username}'.format(username=self.username),
+                              output='json')
 
-        data = await self.get(request_url, output='json')
         self._update_data(data)
 
         if return_:
@@ -230,85 +196,63 @@ class Author(DrukarniaElement):
 
     @property
     def username(self):
-        return self._get_basetype_from_author_data('username', 'str')
+        return self._get_basetype_from_author_data('username', str)
 
     @property
     def avatar(self):
-        return self._get_basetype_from_author_data('avatar', 'str')
+        return self._get_basetype_from_author_data('avatar', str)
 
     @property
     def donate_url(self):
-        return self._get_basetype_from_author_data('donateUrl', 'str')
+        return self._get_basetype_from_author_data('donateUrl', str)
 
     @property
-    def socials(self):
-        return self._get_basetype_from_author_data('socials', 'list')
+    def socials(self) -> Dict:
+        return self._get_basetype_from_author_data('socials', dict)
 
     @property
     def author_id(self):
-        return self._get_basetype_from_author_data('_id', 'str')
+        return self._get_basetype_from_author_data('_id', str)
 
     @property
     def name(self):
-        return self._get_basetype_from_author_data('name', 'str')
+        return self._get_basetype_from_author_data('name', str)
 
     @property
     def description(self):
-        return self._get_basetype_from_author_data('description', 'str')
+        return self._get_basetype_from_author_data('description', str)
 
     @property
     def description_short(self):
-        return self._get_basetype_from_author_data('descriptionShort', 'str')
+        return self._get_basetype_from_author_data('descriptionShort', str)
 
     @property
     def created_at(self):
-        from datetime import datetime
-
-        date = self.author_data.get('createdAt', None)
-
-        if date:
-            date = datetime.fromisoformat(date[:-1])
-
-        return date
+        return self._get_datetime_from_author_data('createdAt')
 
     @property
     def following_num(self):
-        return self._get_basetype_from_author_data('followingNum', 'int')
+        return self._get_basetype_from_author_data('followingNum', int)
 
     @property
     def followers_num(self):
-        return self._get_basetype_from_author_data('followersNum', 'int')
+        return self._get_basetype_from_author_data('followersNum', int)
 
     @property
     def read_num(self):
-        return self._get_basetype_from_author_data('readNum', 'int')
+        return self._get_basetype_from_author_data('readNum', int)
 
     @property
-    async def articles(self):
-        from drukarnia_api.article import Article
-
-        articles = self.author_data.get('articles', [])
-        if not articles:
-            return []
-
-        tasks = [Article.from_records(self.session, **article) for article in articles]
-
-        return await asyncio.gather(*tasks)
+    async def articles(self) -> List:
+        return await data2articles(self._access_data('articles', []), self.session)
 
     @property
-    async def author_tags(self):
-        from drukarnia_api.tags import Tag
+    async def author_tags(self) -> List:
+        return self._access_data('authorTags', [])  # await data2tags(self._access_data('authorTags', []), self.session)
 
-        tags = self.author_data.get('authorTags', [])
-        if not tags:
-            return []
-
-        tasks = [Tag.from_records(self.session, **tag) for tag in tags]
-
-        return await asyncio.gather(*tasks)
-
-    def _update_data(self, new_data: dict):
-        self.author_data.update(new_data)
+    @property
+    def relationships(self):
+        return self._get_basetype_from_author_data('relationships', dict)
 
     @staticmethod
     async def from_records(session: ClientSession, new_data: dict) -> 'Author':
