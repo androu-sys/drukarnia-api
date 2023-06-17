@@ -187,7 +187,8 @@ class Connection:
 
         return records[adjusted_start:]
 
-    def __del__(self):
-        asyncio.run(
-            self.session.close()
-        )
+    async def close_session(self):
+        await self.session.close()
+
+    def __delete__(self):
+        asyncio.create_task(self.close_session())
