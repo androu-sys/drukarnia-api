@@ -8,10 +8,10 @@ from drukarnia_api.drukarnia_base.element import DrukarniaElement
 
 
 class Author(DrukarniaElement):
-    def __init__(self, username: str = None, _id: str = None, *args, **kwargs):
+    def __init__(self, username: str = None, author_id: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.author_data: dict = {'username': username, '_id': _id}
+        self.author_data: dict = {'username': username, '_id': author_id}
 
     async def login(self, email: str, password: str) -> None:
         """
@@ -23,15 +23,16 @@ class Author(DrukarniaElement):
                                         output=['headers', 'json'])
 
         if self.author_id and (self.author_id != info['user']['_id']):
-            raise ValueError('You try to log into unrelated author')
+            raise ValueError('You are trying to log into an unrelated author.')
 
         elif self.username and (self.username != info['user']['username']):
-            raise ValueError('You try to log into unrelated author')
+            raise ValueError('You are trying to log into an unrelated author.')
 
         elif not (self.author_id or self.username):
-            warn("We weren't able to indentify any relationship between current Author data and the Druakrnia "
+            warn("We weren't able to identify any relationship between the current Author data and the Drukarnia "
                  "User you are trying to log into. It may cause unexpected and fatal errors. Please consider "
-                 "initializing Author class with username or _id. Alternatively run collect_data method before!")
+                 "initializing the Author class with a username or _id. Alternatively, run the collect_data "
+                 "method first!")
 
         headers = str(headers)
 

@@ -3,21 +3,22 @@ from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from fake_useragent import UserAgent
 from typing import Any, Callable, Dict, Generator, Iterable, List
 import inspect
-from drukarnia_api.connection.exception import DrukarniaException
+from drukarnia_api.drukarnia_base.exceptions import DrukarniaAPIError
 from warnings import warn
 
 
 async def _from_response(response: ClientResponse, output: str or List[str]) -> Any:
     """
     Extracts data from the response object based on the specified output format.
+    :param response: The response object.
+    :param output: The specified output format.
+    :return: Extracted data.
     """
 
     if response.status not in [200, 201]:
         data = await response.json()
-        raise DrukarniaException(data['message'],
-                                 response.status,
-                                 response.request_info.method,
-                                 str(response.request_info.url))
+        raise DrukarniaAPIError(data['message'], response.status,
+                                response.request_info.method, str(response.request_info.url))
 
     if isinstance(output, str):
         data = await _from_response(response, [output])
@@ -51,12 +52,14 @@ class Connection:
                  create_user_agent: bool = True, *args, **kwargs):
         """
         Initializes a Connection object.
+        :param session: The aiohttp session.
+        :param headers: The headers for the HTTP requests.
+        :param create_user_agent: Whether to create a random User-Agent header.
         """
 
-        # save the aiohttp session
+        # Save the aiohttp session
         if session:
             self.session = session
-
         else:
             headers_ = {}
             if headers:
@@ -71,6 +74,10 @@ class Connection:
                   output: str or list = 'json', *args, **kwargs) -> dict or tuple:
         """
         Sends a GET request and returns the response data based on the specified output format.
+        :param url: The URL for the GET request.
+        :param params: The query parameters for the request.
+        :param output: The specified output format.
+        :return: The response data.
         """
 
         async with self.session.get(url, params=params, *args, **kwargs) as response:
@@ -80,6 +87,10 @@ class Connection:
                   output: str or list = 'json', *args, **kwargs) -> dict or tuple:
         """
         Sends a PUT request and returns the response data based on the specified output format.
+        :param url: The URL for the PUT request.
+        :param params: The query parameters for the request.
+        :param output: The specified output format.
+        :return: The response data.
         """
         async with self.session.put(url, params=params, *args, **kwargs) as response:
             return await _from_response(response, output)
@@ -88,6 +99,10 @@ class Connection:
                     output: str or list = 'json', **kwargs) -> dict or tuple:
         """
         Sends a PATCH request and returns the response data based on the specified output format.
+        :param url: The URL for the PATCH request.
+        :param data: The data for the request.
+        :param output: The specified output format.
+        :return: The response data.
         """
         async with self.session.patch(url, data=data, **kwargs) as response:
             return await _from_response(response, output)
@@ -96,6 +111,10 @@ class Connection:
                    output: str or list = 'json', **kwargs) -> dict or tuple:
         """
         Sends a POST request and returns the response data based on the specified output format.
+        :param url: The URL for the POST request.
+        :param data: The data for the request.
+        :param output: The specified output format.
+        :return: The response data.
         """
         async with self.session.post(url, data=data, **kwargs) as response:
             return await _from_response(response, output)
@@ -103,6 +122,9 @@ class Connection:
     async def delete(self, url: str, output: str or list = 'read', **kwargs):
         """
         Sends a DELETE request and returns the response data based on the specified output format.
+        :param url: The URL for the DELETE request.
+        :param output: The specified output format.
+        :return: The response data.
         """
         async with self.session.delete(url, **kwargs) as response:
             return await _from_response(response, output)
@@ -110,6 +132,8 @@ class Connection:
     async def request_pool(self, heuristics: Iterable[dict]) -> Iterable:
         """
         Sends multiple GET requests concurrently.
+        :param heuristics: The list of dictionaries containing request information.
+        :return: The responses from the requests.
         """
         # Create tasks
         tasks = [getattr(self, 'get')(**kwargs) if isinstance(kwargs, dict) else getattr(self, kwargs[1])(**kwargs[0])
@@ -124,6 +148,11 @@ class Connection:
         """
         Executes requests until the specified stopping condition is met,
         and returns the aggregated results.
+        :param request_synthesizer: The generator that yields request information.
+        :param not_stop_until: The function that determines the stopping condition.
+        :param n_results: The maximum number of results to collect.
+        :param batch_size: The number of requests to send in each batch.
+        :return: The aggregated results.
         """
         all_results = []
         step = 0
@@ -150,6 +179,11 @@ class Connection:
                                  n_collect: int = None, *args, **kwargs) -> Iterable:
         """
         Shortcut for using run_until_no_stop for multi-page scraping.
+        :param direct_url: The URL for the requests.
+        :param offset: The starting offset.
+        :param results_per_page: The number of results per page.
+        :param n_collect: The number of results to collect.
+        :return: The collected results.
         """
         if offset < 0:
             raise ValueError('Offset must be greater than or equal to zero.')
@@ -180,7 +214,13 @@ class Connection:
         return records[adjusted_start:]
 
     async def close_session(self):
+        """
+        Closes the aiohttp session.
+        """
         await self.session.close()
 
     def __delete__(self):
+        """
+        Deletes the Connection object and closes the session.
+        """
         asyncio.create_task(self.close_session())
