@@ -1,6 +1,5 @@
 import asyncio
 from aiohttp import ClientSession, ClientResponse, ContentTypeError
-from fake_useragent import UserAgent
 from typing import Any, Callable, Dict, Generator, Tuple, List, Iterable
 import inspect
 from drukarnia_api.drukarnia_base.exceptions import DrukarniaAPIError
@@ -66,6 +65,8 @@ class Connection:
                 headers_ = headers
 
             if create_user_agent:
+                from fake_useragent import UserAgent
+
                 headers_['User-Agent'] = UserAgent().random
 
             self.session = ClientSession(base_url=self.base_url, headers=headers_, *args, **kwargs)
