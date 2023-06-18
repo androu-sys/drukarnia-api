@@ -30,8 +30,7 @@ class Author(DrukarniaElement):
         elif not (self.author_id or self.username):
             warn("We weren't able to identify any relationship between the current Author data and the Drukarnia "
                  "User you are trying to log into. It may cause unexpected and fatal errors. Please consider "
-                 "initializing the Author class with a username or _id. Alternatively, run the collect_data "
-                 "method first!")
+                 "initializing the Author class with same username and _id as your Drukarnia User.")
 
         headers = str(headers)
         token = re.search(r'refreshToken=(.*?);', headers).group(1)
