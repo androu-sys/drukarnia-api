@@ -32,7 +32,7 @@ class DrukarniaElement(Connection):
         if getattr(self, attr) is None:
             raise DrukarniaElementDataError(attr, caller_name, solution)
 
-    def _get_basetype_from_author_data(self, key: str, type_: Any = int, default: Any = 'auto'):
+    def _get_basetype_from_data(self, key: str, type_: Any = int, default: Any = 'auto'):
         """
         Get the value of the specified key from the author data dictionary and cast it to the specified type.
 

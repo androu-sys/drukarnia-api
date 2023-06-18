@@ -1,7 +1,7 @@
 import asyncio
 from aiohttp import ClientSession, ClientResponse, ContentTypeError
 from fake_useragent import UserAgent
-from typing import Any, Callable, Dict, Generator, Iterable, List
+from typing import Any, Callable, Dict, Generator, Tuple, List, Iterable
 import inspect
 from drukarnia_api.drukarnia_base.exceptions import DrukarniaAPIError
 from warnings import warn
@@ -129,7 +129,7 @@ class Connection:
         async with self.session.delete(url, **kwargs) as response:
             return await _from_response(response, output)
 
-    async def request_pool(self, heuristics: Iterable[dict]) -> Iterable:
+    async def request_pool(self, heuristics: Iterable[dict]) -> Tuple:
         """
         Sends multiple GET requests concurrently.
         :param heuristics: The list of dictionaries containing request information.
@@ -176,7 +176,7 @@ class Connection:
         return all_results
 
     async def multi_page_request(self, direct_url: str, offset: int = 0, results_per_page: int = 20,
-                                 n_collect: int = None, *args, **kwargs) -> Iterable:
+                                 n_collect: int = None, *args, **kwargs) -> List:
         """
         Shortcut for using run_until_no_stop for multi-page scraping.
         :param direct_url: The URL for the requests.

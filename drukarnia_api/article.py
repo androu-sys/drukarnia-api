@@ -1,9 +1,16 @@
 import asyncio
+from datetime import datetime
+from warnings import warn
 
 from aiohttp import ClientSession
 from drukarnia_api.drukarnia_base.element import DrukarniaElement
+from drukarnia_api.shortcuts.class_generator import data2authors, data2articles, data2tags
 
-from drukarnia_api.shortcuts.class_generator import data2authors, data2articles  # data2tags
+from typing import TYPE_CHECKING, Tuple, Dict, List
+
+if TYPE_CHECKING:   # always False, used for typing
+    from drukarnia_api.author import Author
+    from drukarnia_api.tag import Tag
 
 
 class Article(DrukarniaElement):
@@ -63,6 +70,7 @@ class Article(DrukarniaElement):
 
         if delete:
             await self.delete(f'/api/articles/{self.article_id}/comments/{comment_id}/likes', [])
+
         else:
             await self.post(f'/api/articles/{self.article_id}/comments/{comment_id}/likes', {}, [])
 
@@ -87,12 +95,14 @@ class Article(DrukarniaElement):
 
         if unbookmark:
             await self.delete(f'/api/articles/{self.article_id}/bookmarks', [])
+
         elif not section_id:
             raise ValueError('section_id must be passed to bookmark')
+
         else:
             await self.post('/api/articles/bookmarks', {"article": self.article_id, "list": section_id}, [])
 
-    async def collect_data(self, return_: bool = False) -> dict or None:
+    async def collect_data(self, return_: bool = False) -> Dict or None:
         """
         Collects the article's data and updates the object's attributes.
         If 'return_' is True, returns the collected data.
@@ -106,18 +116,8 @@ class Article(DrukarniaElement):
         if return_:
             return data
 
-    @staticmethod
-    async def from_records(session: ClientSession, new_data: dict) -> 'Article':
-        """
-        Creates an Article instance from records.
-        """
-        new_article = Article(session=session)
-        new_article._update_data(new_data)
-
-        return new_article
-
     @property
-    async def owner(self):
+    async def owner(self) -> 'Author' or None:
         """
         Retrieves the owner of the article.
         """
@@ -128,187 +128,223 @@ class Article(DrukarniaElement):
         return await data2authors([owner], self.session)
 
     @property
-    def comments(self):
+    def comments(self) -> List:
         """
         Retrieves the comments of the article.
         """
-        return self._access_data('comments', list)
+        return self._access_data('comments', [])
 
     @property
-    async def recommended_articles(self):
+    async def recommended_articles(self) -> Tuple['Article']:
         """
         Retrieves the recommended articles related to the article.
         """
         return await data2articles(self._access_data('recommendedArticles', []), self.session)
 
     @property
-    def relationships(self):
+    def relationships(self) -> Dict:
         """
         Retrieves the relationships of the article.
         """
-        return self._get_basetype_from_author_data('relationships', dict)
+        return self._get_basetype_from_data('relationships', dict)
 
     @property
     @DrukarniaElement._is_authenticated
-    def is_bookmarked(self):
+    def is_bookmarked(self) -> bool:
         """
         Checks if the article is bookmarked.
         """
-        return self._get_basetype_from_author_data('isBookmarked', bool)
+        return self._get_basetype_from_data('isBookmarked', bool)
 
     @property
     @DrukarniaElement._is_authenticated
-    def is_liked(self):
+    def is_liked(self) -> bool:
         """
         Checks if the article is liked.
         """
-        return self._get_basetype_from_author_data('isLiked', bool)
+        return self._get_basetype_from_data('isLiked', bool)
 
     @property
-    def sensitive(self):
+    def sensitive(self) -> bool:
         """
         Checks if the article is sensitive.
         """
-        return self._get_basetype_from_author_data('sensitive', bool)
+        return self._get_basetype_from_data('sensitive', bool)
 
     @property
-    def content(self):
+    def content(self) -> Dict:
         """
         Retrieves the content of the article.
         """
-        return self._get_basetype_from_author_data('content', dict)
+        return self._get_basetype_from_data('content', dict)
 
     @property
-    async def author_articles(self):
+    async def author_articles(self) -> Tuple['Article']:
         """
         Retrieves the articles written by the author of the article.
         """
         return await data2articles(self._access_data('authorArticles', []), self.session)
 
     @property
-    def thumb_picture(self):
+    def thumb_picture(self) -> str:
         """
         Retrieves the thumbnail picture of the article.
         """
-        return self._get_basetype_from_author_data('thumbPicture', str)
+        return self._get_basetype_from_data('thumbPicture', str)
 
     @property
-    def picture(self):
+    def picture(self) -> str:
         """
         Retrieves the picture of the article.
         """
-        return self._get_basetype_from_author_data('picture', str)
+        return self._get_basetype_from_data('picture', str)
 
     @property
-    def ads(self):
+    def ads(self) -> str:
         """
         Retrieves the ads of the article.
         """
-        return self._get_basetype_from_author_data('ads', str)
+        return self._get_basetype_from_data('ads', str)
 
     @property
-    def index(self):
+    def index(self) -> str:
         """
         Retrieves the index of the article.
         """
-        return self._get_basetype_from_author_data('index', str)
+        return self._get_basetype_from_data('index', str)
 
     @property
-    def created_at(self):
+    def created_at(self) -> datetime:
         """
         Retrieves the creation date of the article.
         """
         return self._get_datetime_from_author_data('createdAt')
 
     @property
-    def read_time(self):
+    def read_time(self) -> float:
         """
         Retrieves the read time of the article.
         """
-        return self._get_basetype_from_author_data('readTime', float)
+        return self._get_basetype_from_data('readTime', float)
 
     @property
-    def number_of_like(self):
+    def number_of_like(self) -> int:
         """
         Retrieves the number of likes of the article.
         """
-        return self._get_basetype_from_author_data('description', int)
+        return self._get_basetype_from_data('description', int)
 
     @property
-    def number_of_comment(self):
+    def number_of_comment(self) -> int:
         """
         Retrieves the number of comments of the article.
         """
-        return self._get_basetype_from_author_data('commentNum', int)
+        return self._get_basetype_from_data('commentNum', int)
 
     @property
-    def article_tags(self):
+    async def article_tags(self) -> Tuple['Tag']:
         """
         Retrieves the tags of the article.
         """
-        return self._get_basetype_from_author_data('tags', dict)
+
+        tags = self._access_data('tags', [])
+
+        if any(map(lambda el: isinstance(el, str), tags)):
+            warn("Tag's data is incomplete, use collect_data method before in order to obtain whole data.")
+            tags = map(lambda el: {'_id': el}, tags)
+
+        return await data2tags(tags, self.session)
 
     @property
-    def main_article_tag(self):
+    async def main_article_tag(self) -> 'Tag' or None:
         """
         Retrieves the main tag of the article.
         """
-        return self._get_basetype_from_author_data('mainTag', str)
+
+        main_id = self._get_basetype_from_data('mainTagId', str)
+        main_name = self._get_basetype_from_data('mainTag', str)
+        main_slug = self._get_basetype_from_data('mainTagSlug', str)
+
+        if not (main_id and main_name and main_slug):
+            return None
+
+        main_tag, = await data2tags([{'_id': main_id, 'name': main_name, 'slug': main_slug}], self.session)
+
+        return main_tag
 
     @property
-    def description(self):
+    def description(self) -> str:
         """
         Retrieves the description of the article.
         """
-        return self._get_basetype_from_author_data('description', str)
+        return self._get_basetype_from_data('description', str)
 
     @property
-    def seo_title(self):
+    def seo_title(self) -> str:
         """
         Retrieves the SEO title of the article.
         """
-        return self._get_basetype_from_author_data('seoTitle', str)
+        return self._get_basetype_from_data('seoTitle', str)
 
     @property
-    def title(self):
+    def title(self) -> str:
         """
         Retrieves the title of the article.
         """
-        return self._get_basetype_from_author_data('title', str)
+        return self._get_basetype_from_data('title', str)
 
     @property
-    def article_id(self):
+    def article_id(self) -> str:
         """
         Retrieves the ID of the article.
         """
-        return self._get_basetype_from_author_data('_id', str)
+        return self._get_basetype_from_data('_id', str)
 
     @property
-    def slug(self):
+    def slug(self) -> str:
         """
         Retrieves the slug of the article.
         """
-        return self._get_basetype_from_author_data('slug', str)
+        return self._get_basetype_from_data('slug', str)
 
-    def __hash__(self):
+    @staticmethod
+    async def from_records(session: ClientSession, new_data: dict) -> 'Article':
+        """
+        Creates an Article instance from records.
+        """
+        new_article = Article(session=session)
+        new_article._update_data(new_data)
+
+        return new_article
+
+    def __hash__(self) -> int:
         """
         Returns the hash value of the Article object.
         """
         return hash(self.article_id or self.slug)
 
 
-if __name__ == '__main__':
-    import pprint
+async def test():
     from drukarnia_api.author import Author
+
     author = Author('digitalowltop')
 
-    loop = asyncio.get_event_loop()
+    await author.collect_data()
+
+    articles = await author.articles
+    article = articles[0]
+
+    tags = await article.article_tags
+    tag = tags[0]
+
+    print(tag._id)
+
+    await author.close_session()
+
+
+if __name__ == '__main__':
+    # import pprint
     # loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
 
-    loop.run_until_complete(author.collect_data())
-    first_article = loop.run_until_complete(author.articles)[0]
-
-    loop.run_until_complete(first_article.collect_data())
-    pprint.pprint(author.all_collected_data)
-
-    loop.run_until_complete(author.close_session())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(test())
