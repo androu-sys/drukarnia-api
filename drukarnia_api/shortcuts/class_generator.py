@@ -1,10 +1,19 @@
-import asyncio
 from typing import Tuple
-
 from aiohttp import ClientSession
+import asyncio
 
 
 async def data2tags(tags_data: list or None, session: ClientSession) -> Tuple:
+    """
+    Converts a list of tag data into Tag objects asynchronously.
+
+    Args:
+        tags_data (list or None): List of tag data.
+        session (ClientSession): aiohttp ClientSession object.
+
+    Returns:
+        Tuple: Tuple of Tag objects.
+    """
     if not tags_data:
         return ()
 
@@ -16,6 +25,16 @@ async def data2tags(tags_data: list or None, session: ClientSession) -> Tuple:
 
 
 async def data2authors(authors_data: list or None, session: ClientSession) -> Tuple:
+    """
+    Converts a list of author data into Author objects asynchronously.
+
+    Args:
+        authors_data (list or None): List of author data.
+        session (ClientSession): aiohttp ClientSession object.
+
+    Returns:
+        Tuple: Tuple of Author objects.
+    """
     if not authors_data:
         return ()
 
@@ -27,6 +46,16 @@ async def data2authors(authors_data: list or None, session: ClientSession) -> Tu
 
 
 async def data2articles(articles_data: list or None, session: ClientSession) -> Tuple:
+    """
+    Converts a list of article data into Article objects asynchronously.
+
+    Args:
+        articles_data (list or None): List of article data.
+        session (ClientSession): aiohttp ClientSession object.
+
+    Returns:
+        Tuple: Tuple of Article objects.
+    """
     if not articles_data:
         return ()
 

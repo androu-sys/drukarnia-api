@@ -2,7 +2,6 @@ import re
 from datetime import datetime
 from typing import Dict, Tuple, List
 from warnings import warn
-
 from aiohttp import ClientSession
 from drukarnia_api.drukarnia_base.element import DrukarniaElement
 from drukarnia_api.shortcuts.class_generator import data2authors, data2articles, data2tags
@@ -23,6 +22,7 @@ class Author(DrukarniaElement):
         """
         Log in the author with the provided email and password.
         """
+        # Make a POST request to log in the author
         headers, info = await self.post('/api/users/login',
                                         data={'password': password, 'email': email},
                                         output=['headers', 'json'])
@@ -36,7 +36,7 @@ class Author(DrukarniaElement):
         elif not (self.author_id or self.username):
             warn("We weren't able to identify any relationship between the current Author data and the Drukarnia "
                  "User you are trying to log into. It may cause unexpected and fatal errors. Please consider "
-                 "initializing the Author class with same username and _id as your Drukarnia User.")
+                 "initializing the Author class with the same username and _id as your Drukarnia User.")
 
         headers = str(headers)
         token = re.search(r'refreshToken=(.*?);', headers).group(1)
@@ -109,7 +109,6 @@ class Author(DrukarniaElement):
         """
         Create a new section for the author's articles.
         """
-
         section_id = await self.post('/api/articles/bookmarks/lists', data={"name": name}, output='read', **kwargs)
 
         return str(section_id)
@@ -119,11 +118,13 @@ class Author(DrukarniaElement):
         """
         Delete a section for the author's articles.
         """
-
         await self.delete(f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
 
     @DrukarniaElement._is_authenticated
     async def subscribe(self, author_id: str, unsubscribe: bool = False) -> None:
+        """
+        Subscribe or unsubscribe to/from an author.
+        """
         if unsubscribe:
             await self.delete(f'/api/relationships/subscribe/{author_id}')
             return None
@@ -132,6 +133,9 @@ class Author(DrukarniaElement):
 
     @DrukarniaElement._is_authenticated
     async def block(self, author_id: str, unblock: bool = False) -> None:
+        """
+        Block or unblock an author.
+        """
         if unblock:
             await self.patch(f'/api/relationships/block/{author_id}')
             return None
@@ -150,7 +154,6 @@ class Author(DrukarniaElement):
         """
         Change the author's password.
         """
-
         await self.patch(f'/api/users/login/password',
                          data={"oldPassword": old_password, "newPassword": new_password},
                          output='read', **kwargs)
@@ -175,7 +178,6 @@ class Author(DrukarniaElement):
         """
         Change the author's email.
         """
-
         await self.patch(f'/api/users/login/email',
                          data={"currentPassword": current_password, "newEmail": new_email},
                          output='read', **kwargs)
