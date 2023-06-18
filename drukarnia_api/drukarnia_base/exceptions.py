@@ -29,7 +29,7 @@ class DrukarniaAPIError(Exception):
 
 
 class DrukarniaElementDataError(Exception):
-    def __init__(self, attr_name: str, method_name: str, solution: str):
+    def __init__(self, attr_name: str, solution: str):
         """
         Custom exception class for handling errors related to missing attributes in Drukarnia element data.
 
@@ -39,7 +39,6 @@ class DrukarniaElementDataError(Exception):
             solution (str): Possible solution to resolve the error.
         """
         self.attr_name = attr_name
-        self.method_name = method_name
         self.solution = solution
 
     def __str__(self):
@@ -47,7 +46,7 @@ class DrukarniaElementDataError(Exception):
         Returns a string representation of the exception.
         """
         text = f"""
-        During processing {self.method_name}, attribute {self.attr_name} has not been found.
+        Attribute {self.attr_name} has not been found.
         Possible solution: {self.solution}
         """
 

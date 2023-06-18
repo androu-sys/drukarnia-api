@@ -44,12 +44,12 @@ class Author(DrukarniaElement):
 
         self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
 
+    @DrukarniaElement._control_attr('author_id')
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                             n_collect: int = None, *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
         """
         Get the followers of the author.
         """
-        self._control_attr('author_id')
 
         # Make a request to get the followers of the author
         followers = await self.multi_page_request(f'/api/relationships/{self.author_id}/followers',
@@ -60,12 +60,12 @@ class Author(DrukarniaElement):
 
         return followers
 
+    @DrukarniaElement._control_attr('author_id')
     async def get_followings(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                              n_collect: int = None, *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
         """
         Get the followings of the author.
         """
-        self._control_attr('author_id')
 
         # Make a request to get the followings of the author
         followings = await self.multi_page_request(f'/api/relationships/{self.author_id}/following',
@@ -182,11 +182,11 @@ class Author(DrukarniaElement):
                          data={"currentPassword": current_password, "newEmail": new_email},
                          output='read', **kwargs)
 
+    @DrukarniaElement._control_attr('username')
     async def collect_data(self, return_: bool = False) -> Dict or None:
         """
         Collect the author's data and update the object's attributes.
         """
-        self._control_attr('username')
 
         data = await self.get('/api/users/profile/{username}'.format(username=self.username),
                               output='json')

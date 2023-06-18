@@ -1,6 +1,5 @@
-from typing import Any
+from typing import Any, Callable
 from warnings import warn
-import inspect
 from datetime import datetime
 from drukarnia_api.drukarnia_base.connection import Connection
 from drukarnia_api.drukarnia_base.exceptions import DrukarniaElementDataError
@@ -15,22 +14,6 @@ class DrukarniaElement(Connection):
         super().__init__(*args, **kwargs)
 
         self.all_collected_data = {}
-
-    def _control_attr(self, attr: str, solution: str = 'call collect_data before') -> None:
-        """
-        Check if the specified attribute exists and raise an error if it is None.
-
-        Args:
-            attr (str): The name of the attribute to check.
-            solution (str): The suggested solution if the attribute is None.
-
-        Raises:
-            DrukarniaElementDataError: If the attribute is None.
-        """
-        caller_name = inspect.currentframe().f_back.f_code.co_name
-
-        if getattr(self, attr) is None:
-            raise DrukarniaElementDataError(attr, caller_name, solution)
 
     def _get_basetype_from_data(self, key: str, type_: Any = int, default: Any = 'auto'):
         """
@@ -90,6 +73,19 @@ class DrukarniaElement(Connection):
             Any: The value from the collected data dictionary corresponding to the key, or the default value.
         """
         return self.all_collected_data.get(key, default)
+
+    @staticmethod
+    def _control_attr(attr: str, solution: str = 'call collect_data before') -> Callable:
+        def decorator(func):
+            def wrapper(self_instance, *args, **kwargs):
+                if getattr(self_instance, attr) is None:
+                    raise DrukarniaElementDataError(attr, solution)
+
+                func(self_instance, *args, **kwargs)
+
+            return wrapper
+
+        return decorator
 
     @staticmethod
     def _is_authenticated(func):
