@@ -177,9 +177,10 @@ class Connection:
         return all_results
 
     async def multi_page_request(self, direct_url: str, offset: int = 0, results_per_page: int = 20,
-                                 n_collect: int = None, *args, **kwargs) -> List:
+                                 n_collect: int = None, list_key: str = None, *args, **kwargs) -> List:
         """
         Shortcut for using run_until_no_stop for multi-page scraping.
+        :param list_key: key of main list results on each API page.
         :param direct_url: The URL for the requests.
         :param offset: The starting offset.
         :param results_per_page: The number of results per page.
@@ -206,7 +207,12 @@ class Connection:
                                             n_results=n_results,
                                             *args, **kwargs)
 
-        records = [record for page in data for record in page]
+        if list_key is None:
+            records = [record for page in data for record in page]
+
+        else:
+            records = [record for page in data for record in page[list_key]]
+
         adjusted_start = offset % results_per_page
 
         if n_collect:

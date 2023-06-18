@@ -1,5 +1,10 @@
 from aiohttp import ClientSession
 from drukarnia_api.drukarnia_base.element import DrukarniaElement
+from drukarnia_api.shortcuts.class_generator import data2articles
+from typing import TYPE_CHECKING, Tuple, Dict
+
+if TYPE_CHECKING:   # always False, used for type hints
+    from drukarnia_api.article import Article
 
 
 class Tag(DrukarniaElement):
@@ -8,6 +13,35 @@ class Tag(DrukarniaElement):
 
         # Update the data with slug_name and tag_id
         self._update_data({'slug': slug_name, '_id': tag_id})
+
+    @DrukarniaElement._control_attr('slug')
+    async def get_articles(self, create_articles: bool = True, offset: int = 0,
+                           results_per_page: int = 20, n_collect: int = None,
+                           *args, **kwargs) -> Tuple['Article'] or Tuple[Dict]:
+        """
+        Get the followers of the author.
+        """
+
+        # Make a request to get the followers of the author
+        articles = await self.multi_page_request(f'https://drukarnia.com.ua/themes/{self.slug}',
+                                                 offset, results_per_page, n_collect, list_key='articles',
+                                                 *args, **kwargs)
+        if create_articles:
+            articles = await data2articles(articles, self.session)
+
+        return articles
+
+    @DrukarniaElement._control_attr('slug')
+    async def collect_data(self, return_: bool = False):
+        result = await self.get(f'https://drukarnia.com.ua/themes/{self.slug}?page=1', output='json')
+
+        if result.get('articles', None):
+            del result['articles']
+
+        self._update_data(result)
+
+        if return_:
+            return result
 
     @property
     def slug(self):
@@ -50,6 +84,10 @@ class Tag(DrukarniaElement):
         Get the _id property of the Tag.
         """
         return self._access_data('_id', None)
+
+    @property
+    def relationships(self):
+        return self._access_data('relationships', None)
 
     @staticmethod
     async def from_records(session: ClientSession, new_data: dict) -> 'Tag':
