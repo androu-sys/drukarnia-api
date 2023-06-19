@@ -121,7 +121,7 @@ class Author(DrukarniaElement):
         await self.delete(f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
 
     @DrukarniaElement._is_authenticated
-    async def subscribe(self, author_id: str, unsubscribe: bool = False) -> None:
+    async def subscribe_author(self, author_id: str, unsubscribe: bool = False) -> None:
         """
         Subscribe or unsubscribe to/from an author.
         """
@@ -132,7 +132,29 @@ class Author(DrukarniaElement):
         await self.post(f'/api/relationships/subscribe/{author_id}')
 
     @DrukarniaElement._is_authenticated
-    async def block(self, author_id: str, unblock: bool = False) -> None:
+    async def subscribe_tag(self, tag_id: str, unsubscribe: bool = False) -> None:
+        """
+        Subscribe or unsubscribe to/from a tag.
+        """
+        if unsubscribe:
+            await self.delete(f'/api/preferences/tags/{tag_id}')
+            return None
+
+        await self.put(f'/api/preferences/tags/{tag_id}')
+
+    @DrukarniaElement._is_authenticated
+    async def block_tag(self, tag_id: str, unblock: bool = False) -> None:
+        """
+        Block or unblock an author.
+        """
+        if unblock:
+            await self.put(f'/api/preferences/tags/{tag_id}/block', data={"isBlocked": 'false'})
+            return None
+
+        await self.put(f'/api/preferences/tags/{tag_id}/block', data={"isBlocked": 'true'})
+
+    @DrukarniaElement._is_authenticated
+    async def block_author(self, author_id: str, unblock: bool = False) -> None:
         """
         Block or unblock an author.
         """

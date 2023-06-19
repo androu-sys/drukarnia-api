@@ -211,7 +211,7 @@ class Connection:
             records = [record for page in data for record in page]
 
         else:
-            records = [record for page in data for record in page[list_key]]
+            records = [record for page in data for record in page.get(list_key, [])]
 
         adjusted_start = offset % results_per_page
 

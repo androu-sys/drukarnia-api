@@ -15,17 +15,21 @@ class Tag(DrukarniaElement):
         self._update_data({'slug': slug_name, '_id': tag_id})
 
     @DrukarniaElement._control_attr('slug')
-    async def get_articles(self, create_articles: bool = True, offset: int = 0,
-                           results_per_page: int = 20, n_collect: int = None,
+    async def get_articles(self, create_articles: bool = True, isolated: bool = False,
+                           offset: int = 0, results_per_page: int = 20, n_collect: int = None,
                            *args, **kwargs) -> Tuple['Article'] or Tuple[Dict]:
         """
         Get the followers of the author.
         """
 
+        new_headers = self.session.headers
+        if isolated and new_headers.get('Cookie', None):
+            del new_headers['Cookie']
+
         # Make a request to get the followers of the author
         articles = await self.multi_page_request(f'https://drukarnia.com.ua/themes/{self.slug}',
                                                  offset, results_per_page, n_collect, list_key='articles',
-                                                 *args, **kwargs)
+                                                 headers=new_headers, *args, **kwargs)
         if create_articles:
             articles = await data2articles(articles, self.session)
 
