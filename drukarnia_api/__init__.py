@@ -5,3 +5,5 @@ from drukarnia_api.tag import Tag
 from drukarnia_api.search import Search
 
 from drukarnia_api.drukarnia_base.exceptions import *
+
+print('Слава Україні 🇺🇦')
