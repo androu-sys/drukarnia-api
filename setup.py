@@ -19,7 +19,7 @@ with open(path.join(HERE, 'requirements.txt')) as f:
 # This call to setup() does all the work
 setup(
     name="drukarnia-api",
-    version="0.1.77",
+    version="0.1.78",   # test 0.1.78, true 0.1.75
     description="wrapper for the Drukarnia API",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -37,7 +37,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["drukarnia_api"],
+    packages=["drukarnia_api", "drukarnia_api.drukarnia_base", "drukarnia_api .shortcuts"],
     include_package_data=True,
     install_requires=requirements
 )
