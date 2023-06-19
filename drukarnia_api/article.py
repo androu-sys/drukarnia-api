@@ -320,29 +320,3 @@ class Article(DrukarniaElement):
         Returns the hash value of the Article object.
         """
         return hash(self.article_id or self.slug)
-
-
-async def test():
-    from drukarnia_api.author import Author
-
-    author = Author('digitalowltop')
-
-    await author.collect_data()
-
-    articles = await author.articles
-    article = articles[0]
-
-    tags = await article.article_tags
-    tag = tags[0]
-
-    print(tag._id)
-
-    await author.close_session()
-
-
-if __name__ == '__main__':
-    # import pprint
-    # loop.run_until_complete(author.login('08gilts_slates@icloud.com', 'xamjeb-Forjac-8rafzI'))
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(test())
