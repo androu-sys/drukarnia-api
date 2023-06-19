@@ -1,4 +1,3 @@
-from types import NoneType
 from typing import Any, Callable
 from warnings import warn
 from datetime import datetime
@@ -34,7 +33,7 @@ class DrukarniaElement(Connection):
         if default == 'auto':
             default = type_()
 
-        check = lambda el1: el1 is default if isinstance(default, NoneType) else el1 == default
+        check = lambda el1: el1 is default if default is None else el1 == default
 
         n = self._access_data(key, default)
         return type_(n) if check(n) else n
