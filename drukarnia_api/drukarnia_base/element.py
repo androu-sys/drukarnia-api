@@ -77,11 +77,11 @@ class DrukarniaElement(Connection):
     @staticmethod
     def _control_attr(attr: str, solution: str = 'call collect_data before') -> Callable:
         def decorator(func):
-            def wrapper(self_instance, *args, **kwargs):
+            async def wrapper(self_instance, *args, **kwargs):
                 if getattr(self_instance, attr) is None:
                     raise DrukarniaElementDataError(attr, solution)
 
-                func(self_instance, *args, **kwargs)
+                return await func(self_instance, *args, **kwargs)
 
             return wrapper
 
@@ -99,7 +99,7 @@ class DrukarniaElement(Connection):
             function: The decorated function.
         """
 
-        def wrapper(self_instance, *args, **kwargs):
+        async def wrapper(self_instance, *args, **kwargs):
             """
             Wrapper function that performs the authentication check before calling the decorated function.
 
@@ -114,6 +114,6 @@ class DrukarniaElement(Connection):
             if 'Cookie' not in self_instance.session.headers:
                 warn("Cookie data was not identified, it may cause an error for this request")
 
-            return func(self_instance, *args, **kwargs)
+            return await func(self_instance, *args, **kwargs)
 
         return wrapper

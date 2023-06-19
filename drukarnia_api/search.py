@@ -32,7 +32,7 @@ class Search(Connection):
 
     async def find_articles(self, query: str, create_articles: bool = True,
                             offset: int = 0, results_per_page: int = 20, n_collect: int = None,
-                            *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
+                            *args, **kwargs) -> Tuple['Article'] or Tuple[Dict]:
         """
         Search for articles.
         """
@@ -48,7 +48,7 @@ class Search(Connection):
 
     async def find_tags(self, query: str, create_tags: bool = True,
                         offset: int = 0, results_per_page: int = 20, n_collect: int = None,
-                        *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
+                        *args, **kwargs) -> Tuple['Tag'] or Tuple[Dict]:
         """
         Search for tags.
         """
