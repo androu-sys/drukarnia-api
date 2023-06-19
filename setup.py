@@ -19,7 +19,7 @@ with open(path.join(HERE, 'requirements.txt')) as f:
 # This call to setup() does all the work
 setup(
     name="drukarnia-api",
-    version="0.1.78",   # test 0.1.78, true 0.1.75
+    version="0.1.79",   # test 0.1.79, true 0.1.75
     description="wrapper for the Drukarnia API",
     long_description=long_description,
     long_description_content_type="text/markdown",
