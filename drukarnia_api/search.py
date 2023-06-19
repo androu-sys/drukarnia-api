@@ -1,7 +1,5 @@
-import asyncio
-
-from drukarnia_api.drukarnia_base import Connection
-from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
+from drukarnia_base import Connection
+from shortcuts import data2authors, data2articles, data2tags
 
 from typing import TYPE_CHECKING, Tuple, Dict
 

@@ -1,8 +1,10 @@
 from datetime import datetime
 from warnings import warn
 from aiohttp import ClientSession
-from drukarnia_api.drukarnia_base import DrukarniaElement
-from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
+
+from drukarnia_base import DrukarniaElement
+from shortcuts import data2authors, data2articles, data2tags
+
 from typing import TYPE_CHECKING, Tuple, Dict, List
 
 if TYPE_CHECKING:   # always False, used for type hints

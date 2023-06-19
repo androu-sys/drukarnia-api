@@ -3,10 +3,12 @@ from datetime import datetime
 from typing import Dict, Tuple, List
 from warnings import warn
 from aiohttp import ClientSession
-from drukarnia_api.drukarnia_base import DrukarniaElement
-from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
+
+from drukarnia_base import DrukarniaElement
+from shortcuts import data2authors, data2articles, data2tags
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:   # always False, used for type hints
     from drukarnia_api.article import Article
     from drukarnia_api.tag import Tag

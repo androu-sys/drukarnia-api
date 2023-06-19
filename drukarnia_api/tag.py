@@ -1,6 +1,8 @@
 from aiohttp import ClientSession
-from drukarnia_api.drukarnia_base import DrukarniaElement
-from drukarnia_api.shortcuts import data2articles
+
+from drukarnia_base import DrukarniaElement
+from shortcuts import data2articles
+
 from typing import TYPE_CHECKING, Tuple, Dict
 
 if TYPE_CHECKING:   # always False, used for type hints
