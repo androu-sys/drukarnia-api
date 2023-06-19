@@ -4,6 +4,6 @@ from drukarnia_api.article import Article
 from drukarnia_api.tag import Tag
 from drukarnia_api.search import Search
 
-from drukarnia_api.drukarnia_base.exceptions import *
+from drukarnia_api.drukarnia_base import DrukarniaAPIError, DrukarniaElementDataError
 
 print('Слава Україні 🇺🇦')
