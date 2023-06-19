@@ -1,3 +1,4 @@
+from types import NoneType
 from typing import Any, Callable
 from warnings import warn
 from datetime import datetime
@@ -29,11 +30,14 @@ class DrukarniaElement(Connection):
             Any: The value from the author data dictionary casted to the specified type or the default value.
 
         """
+
         if default == 'auto':
             default = type_()
 
+        check = lambda el1: el1 is default if isinstance(default, NoneType) else el1 == default
+
         n = self._access_data(key, default)
-        return type_(n) if n != default else n
+        return type_(n) if check(n) else n
 
     def _get_datetime_from_author_data(self, key: str):
         """
