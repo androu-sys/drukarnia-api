@@ -6,4 +6,4 @@ from drukarnia_api.search import Search
 
 from drukarnia_api.drukarnia_base import DrukarniaAPIError, DrukarniaElementDataError
 
-print('Слава Україні 🇺🇦')
+print("Слава Україні 🇺🇦")
