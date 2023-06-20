@@ -7,7 +7,7 @@ from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
 
 from typing import TYPE_CHECKING, Tuple, Dict, List
 
-if TYPE_CHECKING:   # always False, used for type hints
+if TYPE_CHECKING:  # always False, used for type hints
     from drukarnia_api.author import Author
     from drukarnia_api.tag import Tag
 
@@ -28,8 +28,8 @@ class Article(DrukarniaElement):
         Posts a comment on the article and returns the ID of the posted comment.
         """
 
-        posted_comment_id = await self.post('/api/articles/{_id}/comments'.format(_id=self.article_id),
-                                            {'comment': comment_text}, output='read')
+        posted_comment_id = await self.request('post', '/api/articles/{_id}/comments'.format(_id=self.article_id),
+                                               data={'comment': comment_text}, output='read')
         return str(posted_comment_id)
 
     @DrukarniaElement._control_attr('article_id')
@@ -40,16 +40,17 @@ class Article(DrukarniaElement):
         Posts a reply to a comment and returns the ID of the new comment.
         """
 
-        new_comment_id = await self.post(
-            f'/api/articles/{self.article_id}/comments/{comment_id}/replies',
-            {
-                "comment": comment_text, "replyToComment": comment_id, "rootComment": root_comment,
-                "rootCommentOwner": root_comment_owner, "replyToUser": reply2user
-            },
-            output='read'
-        )
+        new_comment_id = await self.request('post',
+                                            f'/api/articles/{self.article_id}/comments/{comment_id}/replies',
+                                            data={
+                                                  "comment": comment_text, "replyToComment": comment_id,
+                                                  "rootComment": root_comment,
+                                                  "rootCommentOwner": root_comment_owner, "replyToUser": reply2user
+                                                },
+                                            output='read'
+                                            )
 
-        return str(new_comment_id)
+        return new_comment_id.decode('utf-8')
 
     @DrukarniaElement._control_attr('article_id')
     @DrukarniaElement._is_authenticated
@@ -58,20 +59,20 @@ class Article(DrukarniaElement):
         Deletes a comment from the article.
         """
 
-        await self.delete(f'/api/articles/{self.article_id}/comments/{comment_id}', [])
+        await self.request('delete', f'/api/articles/{self.article_id}/comments/{comment_id}')
 
     @DrukarniaElement._control_attr('article_id')
     @DrukarniaElement._is_authenticated
-    async def like_comment(self, comment_id: str, delete: bool = False) -> None:
+    async def like_comment(self, comment_id: str, unlike: bool = False) -> None:
         """
         Likes or unlikes a comment based on the 'delete' parameter.
         """
 
-        if delete:
-            await self.delete(f'/api/articles/{self.article_id}/comments/{comment_id}/likes', [])
+        if unlike:
+            await self.request('delete', f'/api/articles/{self.article_id}/comments/{comment_id}/likes')
 
         else:
-            await self.post(f'/api/articles/{self.article_id}/comments/{comment_id}/likes', {}, [])
+            await self.request('post', f'/api/articles/{self.article_id}/comments/{comment_id}/likes')
 
     @DrukarniaElement._control_attr('article_id')
     @DrukarniaElement._is_authenticated
@@ -83,7 +84,7 @@ class Article(DrukarniaElement):
         if not (0 <= n_likes <= 10):
             raise ValueError('Number of likes must be greater or equal to zero and lower or equal to ten')
 
-        await self.post(f'/api/articles/{self.article_id}/like', {'likes': n_likes}, 'read')
+        await self.request('post', f'/api/articles/{self.article_id}/like', data={'likes': n_likes})
 
     @DrukarniaElement._control_attr('article_id')
     @DrukarniaElement._is_authenticated
@@ -93,13 +94,14 @@ class Article(DrukarniaElement):
         """
 
         if unbookmark:
-            await self.delete(f'/api/articles/{self.article_id}/bookmarks', [])
+            await self.request('delete', f'/api/articles/{self.article_id}/bookmarks')
 
         elif not section_id:
-            raise ValueError('section_id must be passed to bookmark')
+            raise ValueError('section_id must be passed for bookmarking')
 
         else:
-            await self.post('/api/articles/bookmarks', {"article": self.article_id, "list": section_id}, [])
+            await self.request('post', '/api/articles/bookmarks',
+                               data={"article": self.article_id, "list": section_id})
 
     @DrukarniaElement._control_attr('slug')
     async def collect_data(self, return_: bool = False) -> Dict or None:
@@ -108,7 +110,7 @@ class Article(DrukarniaElement):
         If 'return_' is True, returns the collected data.
         """
 
-        data = await self.get(f'/api/articles/{self.slug}', output='json')
+        data = await self.request('get', f'/api/articles/{self.slug}', output='json')
 
         self._update_data(data)
 
@@ -148,7 +150,6 @@ class Article(DrukarniaElement):
         return self._get_basetype_from_data('relationships', dict)
 
     @property
-    @DrukarniaElement._is_authenticated
     def is_bookmarked(self) -> bool:
         """
         Checks if the article is bookmarked.
@@ -156,7 +157,6 @@ class Article(DrukarniaElement):
         return self._get_basetype_from_data('isBookmarked', bool)
 
     @property
-    @DrukarniaElement._is_authenticated
     def is_liked(self) -> bool:
         """
         Checks if the article is liked.

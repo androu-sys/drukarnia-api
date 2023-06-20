@@ -44,16 +44,25 @@ class Search(Connection):
 
         return articles
 
-    async def find_tags(self, query: str, create_tags: bool = True,
-                        offset: int = 0, results_per_page: int = 20, n_collect: int = None,
-                        *args, **kwargs) -> Tuple['Tag'] or Tuple[Dict]:
+    async def find_tags(self, query: str, create_tags: bool = True, get_articles: bool = False,
+                        create_articles: bool = True, offset: int = 0, results_per_page: int = 20,
+                        n_collect: int = None, *args, **kwargs) -> Tuple['Tag'] or Tuple[Dict]:
         """
         Search for tags.
         """
 
         # Make a request to get articles
-        tags = await self.multi_page_request(f'/api/articles/search/tags?text={query}',
-                                             offset, results_per_page, n_collect, *args, **kwargs)
+        tags, articles = await self.multi_page_request(f'/api/articles/search/tags?text={query}',
+                                                       list_key=['tags', 'articles'],
+                                                       offset=offset,
+                                                       results_per_page=results_per_page,
+                                                       n_collect=n_collect, *args, **kwargs)
+
+        if get_articles:
+            if create_articles:
+                articles = await data2articles(articles, self.session)
+
+            return tags, articles
 
         if create_tags:
             tags = await data2tags(tags, self.session)

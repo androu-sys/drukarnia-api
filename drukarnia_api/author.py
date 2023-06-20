@@ -24,10 +24,12 @@ class Author(DrukarniaElement):
         """
         Log in the author with the provided email and password.
         """
+
         # Make a POST request to log in the author
-        headers, info = await self.post('/api/users/login',
-                                        data={'password': password, 'email': email},
-                                        output=['headers', 'json'])
+        headers, info = await self.request('post',
+                                           '/api/users/login',
+                                           data={"password": password, "email": email},
+                                           output=['headers', 'json'])
 
         if self.author_id and (self.author_id != info['user']['_id']):
             raise ValueError('You are trying to log into an unrelated author.')
@@ -40,11 +42,13 @@ class Author(DrukarniaElement):
                  "User you are trying to log into. It may cause unexpected and fatal errors. Please consider "
                  "initializing the Author class with the same username and _id as your Drukarnia User.")
 
+        self._update_data(info['user'])
+
         headers = str(headers)
         token = re.search(r'refreshToken=(.*?);', headers).group(1)
         device_id = re.search(r'deviceId=(.*?);', headers).group(1)
 
-        self.session.headers.update({'Cookie': f'deviceId={device_id}; token={token};'})
+        self._update_headers({'Cookie': f'deviceId={device_id}; token={token};'})
 
     @DrukarniaElement._control_attr('author_id')
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
@@ -89,49 +93,59 @@ class Author(DrukarniaElement):
                                              *args, **kwargs)
 
     @DrukarniaElement._is_authenticated
-    async def get_reads_history(self, offset: int = 0, results_per_page: int = 20,
-                                n_collect: int = None, *args, **kwargs) -> List[Dict]:
+    async def get_reads_history(self, create_articles: bool = True, offset: int = 0,
+                                results_per_page: int = 20, n_collect: int = None,
+                                *args, **kwargs) -> List[Dict] or List['Article']:
         """
         Get the reading history of the author.
         """
-        return await self.multi_page_request('/api/stats/reads/history',
-                                             offset, results_per_page, n_collect,
-                                             *args, **kwargs)
+        articles = await self.multi_page_request('/api/stats/reads/history',
+                                                 offset, results_per_page, n_collect,
+                                                 *args, **kwargs)
+
+        if create_articles:
+            articles = await data2articles(articles, self.session)
+
+        return articles
 
     @DrukarniaElement._is_authenticated
-    async def get_sections(self, preview: bool = True, *args, **kwargs) -> Dict or List:
+    async def get_sections(self, preview: bool = True, **kwargs) -> List[dict]:
         """
         Get the sections of the author's articles.
         """
-        return await self.get(f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
-                              output='json', *args, **kwargs)
+        return await self.request('get', f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
+                                  output='json', **kwargs)
 
     @DrukarniaElement._is_authenticated
-    async def create_section(self, name: str, **kwargs) -> str:
+    async def create_section(self, name: str, **kwargs) -> List[Dict]:
         """
         Create a new section for the author's articles.
         """
-        section_id = await self.post('/api/articles/bookmarks/lists', data={"name": name}, output='read', **kwargs)
+        section_id = await self.request('get',
+                                        '/api/articles/bookmarks/lists',
+                                        data={"name": name},
+                                        output='read', **kwargs)
 
-        return str(section_id)
+        return section_id.decode('utf-8')
 
     @DrukarniaElement._is_authenticated
     async def delete_section(self, section_id: str, **kwargs) -> None:
         """
         Delete a section for the author's articles.
         """
-        await self.delete(f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
+        await self.request('delete', f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
 
     @DrukarniaElement._is_authenticated
     async def subscribe_author(self, author_id: str, unsubscribe: bool = False) -> None:
         """
         Subscribe or unsubscribe to/from an author.
         """
+
         if unsubscribe:
-            await self.delete(f'/api/relationships/subscribe/{author_id}')
+            await self.request('delete', f'/api/relationships/subscribe/{author_id}')
             return None
 
-        await self.post(f'/api/relationships/subscribe/{author_id}')
+        await self.request('post', f'/api/relationships/subscribe/{author_id}')
 
     @DrukarniaElement._is_authenticated
     async def subscribe_tag(self, tag_id: str, unsubscribe: bool = False) -> None:
@@ -139,10 +153,10 @@ class Author(DrukarniaElement):
         Subscribe or unsubscribe to/from a tag.
         """
         if unsubscribe:
-            await self.delete(f'/api/preferences/tags/{tag_id}')
+            await self.request('delete', f'/api/preferences/tags/{tag_id}')
             return None
 
-        await self.put(f'/api/preferences/tags/{tag_id}')
+        await self.request('put', f'/api/preferences/tags/{tag_id}')
 
     @DrukarniaElement._is_authenticated
     async def block_tag(self, tag_id: str, unblock: bool = False) -> None:
@@ -150,10 +164,10 @@ class Author(DrukarniaElement):
         Block or unblock an author.
         """
         if unblock:
-            await self.put(f'/api/preferences/tags/{tag_id}/block', data={"isBlocked": 'false'})
+            await self.request('put', f'/api/preferences/tags/{tag_id}/block', data={"isBlocked": False})
             return None
 
-        await self.put(f'/api/preferences/tags/{tag_id}/block', data={"isBlocked": 'true'})
+        await self.request('put', f'/api/preferences/tags/{tag_id}/block', data={"isBlocked": True})
 
     @DrukarniaElement._is_authenticated
     async def block_author(self, author_id: str, unblock: bool = False) -> None:
@@ -161,26 +175,32 @@ class Author(DrukarniaElement):
         Block or unblock an author.
         """
         if unblock:
-            await self.patch(f'/api/relationships/block/{author_id}')
+            await self.request('patch', f'/api/relationships/block/{author_id}')
             return None
 
-        await self.put(f'/api/relationships/block/{author_id}')
+        await self.request('put', f'/api/relationships/block/{author_id}')
 
     @DrukarniaElement._is_authenticated
-    async def get_blocked(self) -> List or Dict:
+    async def get_blocked(self, create_authors: bool = False) -> List[Dict] or Tuple['Author']:
         """
         Get the authors blocked by the current author.
         """
-        return await self.get('/api/relationships/blocked')
+
+        authors = await self.request('get', '/api/relationships/blocked', output='json')
+
+        if create_authors:
+            authors = await data2authors(authors, self.session)
+
+        return authors
 
     @DrukarniaElement._is_authenticated
     async def change_password(self, old_password: str, new_password: str, **kwargs) -> None:
         """
         Change the author's password.
         """
-        await self.patch(f'/api/users/login/password',
-                         data={"oldPassword": old_password, "newPassword": new_password},
-                         output='read', **kwargs)
+        await self.request('patch', f'/api/users/login/password',
+                           data={"oldPassword": old_password, "newPassword": new_password},
+                           output='read', **kwargs)
 
     @DrukarniaElement._is_authenticated
     async def change_user_info(self, name: str = None, description: str = None, username: str = None,
@@ -194,17 +214,17 @@ class Author(DrukarniaElement):
 
         info2patch = {key: value for key, value in info2patch.items() if value is not None}
 
-        response = await self.patch('/api/users', data=info2patch, output='read')
-        return str(response)
+        response = await self.request('patch', '/api/users', data=info2patch, output='read')
+        return response.decode('utf-8')
 
     @DrukarniaElement._is_authenticated
     async def change_email(self, current_password: str, new_email: str, **kwargs) -> None:
         """
         Change the author's email.
         """
-        await self.patch(f'/api/users/login/email',
-                         data={"currentPassword": current_password, "newEmail": new_email},
-                         output='read', **kwargs)
+        await self.request('patch', f'/api/users/login/email',
+                           data={"currentPassword": current_password, "newEmail": new_email},
+                           **kwargs)
 
     @DrukarniaElement._control_attr('username')
     async def collect_data(self, return_: bool = False) -> Dict or None:
@@ -212,8 +232,8 @@ class Author(DrukarniaElement):
         Collect the author's data and update the object's attributes.
         """
 
-        data = await self.get('/api/users/profile/{username}'.format(username=self.username),
-                              output='json')
+        data = await self.request('get', '/api/users/profile/{username}'.format(username=self.username),
+                                  output='json')
 
         self._update_data(data)
 

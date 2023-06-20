@@ -1,12 +1,13 @@
 from aiohttp import ClientSession
 
 from drukarnia_api.drukarnia_base import DrukarniaElement
-from drukarnia_api.shortcuts import data2articles
+from drukarnia_api.shortcuts import data2articles, data2tags, data2authors
 
 from typing import TYPE_CHECKING, Tuple, Dict
 
 if TYPE_CHECKING:   # always False, used for type hints
     from drukarnia_api.article import Article
+    from drukarnia_api.author import Author
 
 
 class Tag(DrukarniaElement):
@@ -17,29 +18,51 @@ class Tag(DrukarniaElement):
         self._update_data({'slug': slug_name, '_id': tag_id})
 
     @DrukarniaElement._control_attr('slug')
-    async def get_articles(self, create_articles: bool = True, isolated: bool = False,
+    async def get_articles(self, create_articles: bool = True,
                            offset: int = 0, results_per_page: int = 20, n_collect: int = None,
-                           *args, **kwargs) -> Tuple['Article'] or Tuple[Dict]:
+                           **kwargs) -> Tuple['Article'] or Tuple[Dict]:
         """
         Get the followers of the author.
         """
 
-        new_headers = self.session.headers
-        if isolated and new_headers.get('Cookie', None):
-            del new_headers['Cookie']
-
         # Make a request to get the followers of the author
-        articles = await self.multi_page_request(f'https://drukarnia.com.ua/themes/{self.slug}',
+        articles = await self.multi_page_request(f'/api/articles/tags/{self.slug}',
                                                  offset, results_per_page, n_collect, list_key='articles',
-                                                 headers=new_headers, *args, **kwargs)
+                                                 **kwargs)
         if create_articles:
             articles = await data2articles(articles, self.session)
 
         return articles
 
+    @DrukarniaElement._control_attr('tag_id')
+    async def related_tags(self, create_tags: bool = True) -> Tuple['Tag'] or Tuple[Dict]:
+        """
+        Get the followers of the author.
+        """
+
+        # Make a request to get the followers of the author
+        tags = await self.request('get', f'/api/articles/tags/{self.tag_id}/related?page=1', output='json')
+        if create_tags:
+            tags = await data2tags(tags, self.session)
+
+        return tags
+
+    @DrukarniaElement._control_attr('tag_id')
+    async def related_authors(self, create_tags: bool = True,) -> Tuple['Author'] or Tuple[Dict]:
+        """
+        Get the followers of the author.
+        """
+
+        # Make a request to get the followers of the author
+        authors = await self.request('get', f'/api/users/tags/{self.tag_id}/related', output='json')
+        if create_tags:
+            authors = await data2authors(authors, self.session)
+
+        return authors
+
     @DrukarniaElement._control_attr('slug')
     async def collect_data(self, return_: bool = False):
-        result = await self.get(f'https://drukarnia.com.ua/themes/{self.slug}?page=1', output='json')
+        result = await self.request('get', f'/api/articles/tags/{self.slug}?page=1', output='json')
 
         if result.get('articles', None):
             del result['articles']
@@ -85,7 +108,7 @@ class Tag(DrukarniaElement):
         return self._access_data('name', None)
 
     @property
-    def _id(self):
+    def tag_id(self):
         """
         Get the _id property of the Tag.
         """

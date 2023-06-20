@@ -1,6 +1,7 @@
 from typing import Any, Callable
 from warnings import warn
 from datetime import datetime
+import inspect
 from drukarnia_api.drukarnia_base.connection import Connection
 from drukarnia_api.drukarnia_base.exceptions import DrukarniaElementDataError
 

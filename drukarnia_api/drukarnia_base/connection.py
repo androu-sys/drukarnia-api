@@ -1,18 +1,13 @@
 import asyncio
-from aiohttp import ClientSession, ClientResponse, ContentTypeError
+import json
+
+from aiohttp import ClientSession, ClientResponse
 from typing import Any, Callable, Dict, Generator, Tuple, List, Iterable
 import inspect
 from drukarnia_api.drukarnia_base.exceptions import DrukarniaAPIError
-from warnings import warn
 
 
-async def _from_response(response: ClientResponse, output: str or List[str]) -> Any:
-    """
-    Extracts data from the response object based on the specified output format.
-    :param response: The response object.
-    :param output: The specified output format.
-    :return: Extracted data.
-    """
+async def _from_response(response: ClientResponse, output: str or List[str] or None) -> Any:
 
     if response.status not in [200, 201]:
         data = await response.json()
@@ -23,23 +18,21 @@ async def _from_response(response: ClientResponse, output: str or List[str]) -> 
         data = await _from_response(response, [output])
         return data[0]
 
+    if output is None:
+        return []
+
     data = []
     for func_name in output:
-        try:
-            attr = getattr(response, func_name)
+        attr = getattr(response, func_name)
 
-            if inspect.iscoroutinefunction(attr):
-                data.append(await attr())
+        if inspect.iscoroutinefunction(attr):
+            data.append(await attr())
 
-            elif callable(attr):
-                data.append(attr())
+        elif callable(attr):
+            data.append(attr())
 
-            else:
-                data.append(attr)
-
-        except ContentTypeError as cte:
-            warn('During calling {func_name} from response, '
-                 'the following error occurred: \n{error}'.format(func_name=func_name, error=cte.message))
+        else:
+            data.append(attr)
 
     return data
 
@@ -49,12 +42,6 @@ class Connection:
 
     def __init__(self, session: ClientSession = None, headers: dict = None,
                  create_user_agent: bool = True, *args, **kwargs):
-        """
-        Initializes a Connection object.
-        :param session: The aiohttp session.
-        :param headers: The headers for the HTTP requests.
-        :param create_user_agent: Whether to create a random User-Agent header.
-        """
 
         # Save the aiohttp session
         if session:
@@ -71,73 +58,31 @@ class Connection:
 
             self.session = ClientSession(base_url=self.base_url, headers=headers_, *args, **kwargs)
 
-    async def get(self, url: str, params: dict = None,
-                  output: str or list = 'json', *args, **kwargs) -> dict or tuple:
-        """
-        Sends a GET request and returns the response data based on the specified output format.
-        :param url: The URL for the GET request.
-        :param params: The query parameters for the request.
-        :param output: The specified output format.
-        :return: The response data.
-        """
+    def _update_headers(self, new_data, inplace: bool = True) -> dict:
+        if inplace:
+            self.session.headers.update(new_data)
 
-        async with self.session.get(url, params=params, *args, **kwargs) as response:
+        return dict(self.session.headers) | new_data
+
+    async def request(self, method: str, url: str, output: str or list = None, **kwargs) -> Any:
+
+        if (method in ['post', 'put', 'patch']) and isinstance(kwargs.get('data', {}), dict):
+            # if data parameter will be passed as None, (e.g. not passed at all)
+            # aiohttp will switch to aplication/octet media type
+            # which is not supported by Drukarnia API
+
+            kwargs['data'] = json.dumps(kwargs.get('data', {}))
+            headers = self._update_headers({'Content-Type': 'application/json'}, inplace=False)
+
+            async with self.session.request(method.upper(), url, headers=headers, **kwargs) as response:
+                return await _from_response(response, output)
+
+        async with self.session.request(method.upper(), url, **kwargs) as response:
             return await _from_response(response, output)
 
-    async def put(self, url: str, params: dict = None,
-                  output: str or list = 'json', *args, **kwargs) -> dict or tuple:
-        """
-        Sends a PUT request and returns the response data based on the specified output format.
-        :param url: The URL for the PUT request.
-        :param params: The query parameters for the request.
-        :param output: The specified output format.
-        :return: The response data.
-        """
-        async with self.session.put(url, params=params, *args, **kwargs) as response:
-            return await _from_response(response, output)
-
-    async def patch(self, url: str, data: dict = None,
-                    output: str or list = 'json', **kwargs) -> dict or tuple:
-        """
-        Sends a PATCH request and returns the response data based on the specified output format.
-        :param url: The URL for the PATCH request.
-        :param data: The data for the request.
-        :param output: The specified output format.
-        :return: The response data.
-        """
-        async with self.session.patch(url, data=data, **kwargs) as response:
-            return await _from_response(response, output)
-
-    async def post(self, url: str, data: dict = None,
-                   output: str or list = 'json', **kwargs) -> dict or tuple:
-        """
-        Sends a POST request and returns the response data based on the specified output format.
-        :param url: The URL for the POST request.
-        :param data: The data for the request.
-        :param output: The specified output format.
-        :return: The response data.
-        """
-        async with self.session.post(url, data=data, **kwargs) as response:
-            return await _from_response(response, output)
-
-    async def delete(self, url: str, output: str or list = 'read', **kwargs):
-        """
-        Sends a DELETE request and returns the response data based on the specified output format.
-        :param url: The URL for the DELETE request.
-        :param output: The specified output format.
-        :return: The response data.
-        """
-        async with self.session.delete(url, **kwargs) as response:
-            return await _from_response(response, output)
-
-    async def request_pool(self, heuristics: Iterable[dict]) -> Tuple:
-        """
-        Sends multiple GET requests concurrently.
-        :param heuristics: The list of dictionaries containing request information.
-        :return: The responses from the requests.
-        """
+    async def request_pool(self, heuristics: Iterable[Dict[str, Any]]) -> Tuple:
         # Create tasks
-        tasks = [getattr(self, 'get')(**kwargs) if isinstance(kwargs, dict) else getattr(self, kwargs[1])(**kwargs[0])
+        tasks = [self.request(**kwargs)
                  for kwargs in heuristics]
 
         # Get results
@@ -146,15 +91,6 @@ class Connection:
     async def run_until_no_stop(self, request_synthesizer: Generator[Dict or List[Dict, str], None, None],
                                 not_stop_until: Callable[[Any], bool], n_results: int = None,
                                 batch_size: int = 5) -> List[Any]:
-        """
-        Executes requests until the specified stopping condition is met,
-        and returns the aggregated results.
-        :param request_synthesizer: The generator that yields request information.
-        :param not_stop_until: The function that determines the stopping condition.
-        :param n_results: The maximum number of results to collect.
-        :param batch_size: The number of requests to send in each batch.
-        :return: The aggregated results.
-        """
         all_results = []
         step = 0
 
@@ -177,16 +113,7 @@ class Connection:
         return all_results
 
     async def multi_page_request(self, direct_url: str, offset: int = 0, results_per_page: int = 20,
-                                 n_collect: int = None, list_key: str = None, *args, **kwargs) -> List:
-        """
-        Shortcut for using run_until_no_stop for multi-page scraping.
-        :param list_key: key of main list results on each API page.
-        :param direct_url: The URL for the requests.
-        :param offset: The starting offset.
-        :param results_per_page: The number of results per page.
-        :param n_collect: The number of results to collect.
-        :return: The collected results.
-        """
+                                 n_collect: int = None, list_key: str or list = None, **kwargs) -> List:
         if offset < 0:
             raise ValueError('Offset must be greater than or equal to zero.')
 
@@ -197,23 +124,35 @@ class Connection:
             start_page = offset // results_per_page + 1
 
             while True:
-                yield [{'url': direct_url, 'params': {'page': start_page}}, 'get']
+                yield {'url': direct_url,
+                       'params': {'page': start_page},
+                       'output': 'json',
+                       'method': 'get'} | kwargs
+
                 start_page += 1
 
         n_results = (n_collect // results_per_page + int(n_collect % results_per_page != 0)) if n_collect else None
 
         data = await self.run_until_no_stop(request_synthesizer=synthesizer(),
                                             not_stop_until=lambda result: result != [],
-                                            n_results=n_results,
-                                            *args, **kwargs)
+                                            n_results=n_results)
 
-        if list_key is None:
+        adjusted_start = offset % results_per_page
+
+        if isinstance(list_key, list):
+            records = [[record for page in data for record in page.get(key, [])]
+                       for key in list_key]
+
+            if n_collect:
+                return [record[adjusted_start:adjusted_start + n_collect] for record in records]
+
+            return [record[adjusted_start:] for record in records]
+
+        elif list_key is None:
             records = [record for page in data for record in page]
 
         else:
             records = [record for page in data for record in page.get(list_key, [])]
-
-        adjusted_start = offset % results_per_page
 
         if n_collect:
             return records[adjusted_start:adjusted_start + n_collect]
