@@ -13,23 +13,20 @@ from drukarnia_api import Search
 
 
 async def get_author_article_titles():
-    # Retrieve all results
-    authors = await Search().find_author('cupomanka')
-    # Get the first search result
-    author = authors[0]
+    async with Search() as search_engine:
+        authors = await search_engine.find_author('cupomanka') 
+        # Get the first search result
+        author = authors[0]
 
-    # Collect all data about the user
-    await author.collect_data()
+        # Collect all data about the user
+        await author.collect_data()
 
-    # Get user articles
-    articles = await author.articles
+        # Get user articles
+        articles = await author.articles
 
-    # Print all titles
-    for article in articles:
-        print(article.title)
-
-    # Close the session (we are still considering the best way to make it seamless)
-    await author.close_session()
+        # Print all titles
+        for article in articles:
+            print(article.title)
 
 
 if __name__ == '__main__':

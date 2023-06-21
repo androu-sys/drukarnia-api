@@ -9,7 +9,7 @@ from drukarnia_api.drukarnia_base.exceptions import DrukarniaAPIError
 
 async def _from_response(response: ClientResponse, output: str or List[str] or None) -> Any:
 
-    if response.status not in [200, 201]:
+    if not (200 <= int(response.status) < 300):
         data = await response.json()
         raise DrukarniaAPIError(data['message'], response.status,
                                 response.request_info.method, str(response.request_info.url))
@@ -47,7 +47,7 @@ class Connection:
         if session:
             self.session = session
         else:
-            headers_ = {}
+            headers_ = {'Content-Type': 'application/json'}
             if headers:
                 headers_ = headers
 
@@ -57,6 +57,12 @@ class Connection:
                 headers_['User-Agent'] = UserAgent().random
 
             self.session = ClientSession(base_url=self.base_url, headers=headers_, *args, **kwargs)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.session.close()
 
     def _update_headers(self, new_data, inplace: bool = True) -> dict:
         if inplace:
@@ -72,10 +78,6 @@ class Connection:
             # which is not supported by Drukarnia API
 
             kwargs['data'] = json.dumps(kwargs.get('data', {}))
-            headers = self._update_headers({'Content-Type': 'application/json'}, inplace=False)
-
-            async with self.session.request(method.upper(), url, headers=headers, **kwargs) as response:
-                return await _from_response(response, output)
 
         async with self.session.request(method.upper(), url, **kwargs) as response:
             return await _from_response(response, output)
