@@ -126,3 +126,4 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/pycharm
 /test.ipynb
 /.ipynb_checkpoints/
+/drukarnia_api/shortcuts/__pycache__
