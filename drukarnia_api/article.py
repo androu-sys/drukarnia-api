@@ -3,13 +3,14 @@ from warnings import warn
 from aiohttp import ClientSession
 
 from drukarnia_api.drukarnia_base import DrukarniaElement
-from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
+from drukarnia_api.shortcuts import data2authors, data2articles, data2tags, data2comments
 
 from typing import TYPE_CHECKING, Tuple, Dict, List
 
 if TYPE_CHECKING:  # always False, used for type hints
     from drukarnia_api.author import Author
     from drukarnia_api.tag import Tag
+    from drukarnia_api.comment import Comment
 
 
 class Article(DrukarniaElement):
@@ -31,48 +32,6 @@ class Article(DrukarniaElement):
         posted_comment_id = await self.request('post', '/api/articles/{_id}/comments'.format(_id=self.article_id),
                                                data={'comment': comment_text}, output='read')
         return str(posted_comment_id)
-
-    @DrukarniaElement._control_attr('article_id')
-    @DrukarniaElement._is_authenticated
-    async def reply2comment(self, comment_text: str, comment_id: str, root_comment: str,
-                            root_comment_owner: str, reply2user: str) -> str:
-        """
-        Posts a reply to a comment and returns the ID of the new comment.
-        """
-
-        new_comment_id = await self.request('post',
-                                            f'/api/articles/{self.article_id}/comments/{comment_id}/replies',
-                                            data={
-                                                  "comment": comment_text, "replyToComment": comment_id,
-                                                  "rootComment": root_comment,
-                                                  "rootCommentOwner": root_comment_owner, "replyToUser": reply2user
-                                                },
-                                            output='read'
-                                            )
-
-        return new_comment_id.decode('utf-8')
-
-    @DrukarniaElement._control_attr('article_id')
-    @DrukarniaElement._is_authenticated
-    async def delete_comment(self, comment_id: str) -> None:
-        """
-        Deletes a comment from the article.
-        """
-
-        await self.request('delete', f'/api/articles/{self.article_id}/comments/{comment_id}')
-
-    @DrukarniaElement._control_attr('article_id')
-    @DrukarniaElement._is_authenticated
-    async def like_comment(self, comment_id: str, unlike: bool = False) -> None:
-        """
-        Likes or unlikes a comment based on the 'delete' parameter.
-        """
-
-        if unlike:
-            await self.request('delete', f'/api/articles/{self.article_id}/comments/{comment_id}/likes')
-
-        else:
-            await self.request('post', f'/api/articles/{self.article_id}/comments/{comment_id}/likes')
 
     @DrukarniaElement._control_attr('article_id')
     @DrukarniaElement._is_authenticated
@@ -129,11 +88,11 @@ class Article(DrukarniaElement):
         return await data2authors([owner], self.session)
 
     @property
-    def comments(self) -> List:
+    async def comments(self) -> Tuple['Comment']:
         """
         Retrieves the comments of the article.
         """
-        return self._access_data('comments', [])
+        return await data2comments(self._access_data('comments', []), self.session)
 
     @property
     async def recommended_articles(self) -> Tuple['Article']:

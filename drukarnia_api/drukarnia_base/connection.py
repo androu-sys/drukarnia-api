@@ -9,7 +9,7 @@ from drukarnia_api.drukarnia_base.exceptions import DrukarniaAPIError
 
 async def _from_response(response: ClientResponse, output: str or List[str] or None) -> Any:
 
-    if not (200 <= int(response.status) < 300):
+    if int(response.status) not in [200, 201]:
         data = await response.json()
         raise DrukarniaAPIError(data['message'], response.status,
                                 response.request_info.method, str(response.request_info.url))

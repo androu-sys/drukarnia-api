@@ -48,6 +48,30 @@ class Tag(DrukarniaElement):
         return tags
 
     @DrukarniaElement._control_attr('tag_id')
+    @DrukarniaElement._is_authenticated
+    async def subscribe_tag(self, unsubscribe: bool = False) -> None:
+        """
+        Subscribe or unsubscribe to/from a tag.
+        """
+        if unsubscribe:
+            await self.request('delete', f'/api/preferences/tags/{self.tag_id}')
+            return None
+
+        await self.request('put', f'/api/preferences/tags/{self.tag_id}')
+
+    @DrukarniaElement._control_attr('tag_id')
+    @DrukarniaElement._is_authenticated
+    async def block_tag(self, unblock: bool = False) -> None:
+        """
+        Block or unblock an author.
+        """
+        if unblock:
+            await self.request('put', f'/api/preferences/tags/{self.tag_id}/block', data={"isBlocked": False})
+            return None
+
+        await self.request('put', f'/api/preferences/tags/{self.tag_id}/block', data={"isBlocked": True})
+
+    @DrukarniaElement._control_attr('tag_id')
     async def related_authors(self, create_tags: bool = True,) -> Tuple['Author'] or Tuple[Dict]:
         """
         Get the followers of the author.
