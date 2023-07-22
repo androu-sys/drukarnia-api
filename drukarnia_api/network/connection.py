@@ -15,6 +15,7 @@ class Connection:
         self.headers = headers if headers else Headers()
 
         self.session = session
+        self.custom_session = session is not None
 
     def __call__(self, session: ClientSession = None, *args, **kwargs) -> 'Connection':
         if session:
@@ -33,10 +34,11 @@ class Connection:
         return self
 
     async def __aenter__(self):
-        return self.session
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.session.close()
+        if self.custom_session is False:
+            await self.session.close()
 
     async def request(self, method: str, url: str, output: str or list = None, **kwargs) -> Any:
         if method in ['post', 'put', 'patch']:

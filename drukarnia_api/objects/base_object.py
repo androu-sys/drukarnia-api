@@ -80,7 +80,7 @@ class DrukarniaElement(Connection):
 
     @staticmethod
     def requires_attributes(attrs: List[str], solution: str = 'await collect_date() before.') -> Callable:
-        def decorator(func: Callable[[Any, ...], Awaitable]):
+        def decorator(func: Callable[..., Awaitable]):
             @wraps(func)
             async def wrapper(self_instance, *args, **kwargs):
                 if not all(getattr(self_instance, attr, None) for attr in attrs):
