@@ -7,7 +7,19 @@ if TYPE_CHECKING:
 
 
 async def _login(email: str, password: str, connection: 'Connection') -> Tuple[str, Dict[str, Any]]:
-    # Make a POST request to log in the author
+    """
+    Logs in the user by making a POST request to the login endpoint.
+
+    Parameters:
+        email (str): The email address of the user.
+        password (str): The password of the user.
+        connection ('Connection'): An instance of the 'Connection' class used to make HTTP requests.
+
+    Returns:
+        Tuple[str, Dict[str, Any]]: A tuple containing two values:
+            - str: A string representing the cookies obtained after successful login.
+            - Dict[str, Any]: A dictionary containing the response JSON data from the login endpoint.
+    """
     headers, info = await connection.request(
         'post',
         '/api/users/login',
@@ -28,8 +40,21 @@ class DrukarniaCookies(CookieJar):
     owner = None
 
     def __init__(self):
-        super().__init__(unsafe=True)  # Set unsafe=True to allow third-party cookies.
+        """
+        Initializes the DrukarniaCookies class, a subclass of CookieJar.
+
+        The unsafe parameter is set to True to allow third-party cookies.
+        """
+        super().__init__(unsafe=True)
 
     async def login(self, email: str, password: str, connection: 'Connection'):
+        """
+        Logs in the user and stores the cookies in the instance.
+
+        Parameters:
+            email (str): The email address of the user.
+            password (str): The password of the user.
+            connection ('Connection'): An instance of the 'Connection' class used to make HTTP requests.
+        """
         cookie_str, self.owner = await _login(email, password, connection)
         self.load(cookie_str)

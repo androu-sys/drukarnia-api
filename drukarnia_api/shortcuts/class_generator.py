@@ -15,11 +15,11 @@ async def data2tags(tags_data: list or None, session: ClientSession) -> Tuple['T
     Converts a list of tag data into Tag objects asynchronously.
 
     Args:
-        tags_data (list or None): List of tag data.
+        tags_data (list or None): List of tag data. If None, an empty tuple will be returned.
         session (ClientSession): aiohttp ClientSession object.
 
     Returns:
-        Tuple: Tuple of Tag objects.
+        Tuple[Tag] or Tuple: Tuple of Tag objects or an empty tuple if tags_data is None.
     """
     if not tags_data:
         return ()
@@ -36,11 +36,11 @@ async def data2authors(authors_data: list or None, session: ClientSession) -> Tu
     Converts a list of author data into Author objects asynchronously.
 
     Args:
-        authors_data (list or None): List of author data.
+        authors_data (list or None): List of author data. If None, an empty tuple will be returned.
         session (ClientSession): aiohttp ClientSession object.
 
     Returns:
-        Tuple: Tuple of Author objects.
+        Tuple[Author] or Tuple: Tuple of Author objects or an empty tuple if authors_data is None.
     """
     if not authors_data:
         return ()
@@ -57,11 +57,11 @@ async def data2articles(articles_data: list or None, session: ClientSession) -> 
     Converts a list of article data into Article objects asynchronously.
 
     Args:
-        articles_data (list or None): List of article data.
+        articles_data (list or None): List of article data. If None, an empty tuple will be returned.
         session (ClientSession): aiohttp ClientSession object.
 
     Returns:
-        Tuple: Tuple of Article objects.
+        Tuple[Article] or Tuple: Tuple of Article objects or an empty tuple if articles_data is None.
     """
     if not articles_data:
         return ()
@@ -74,6 +74,16 @@ async def data2articles(articles_data: list or None, session: ClientSession) -> 
 
 
 async def data2comments(comment_data: list or None, session: ClientSession) -> Tuple['Comment'] or Tuple:
+    """
+    Converts a list of comment data into Comment objects asynchronously.
+
+    Args:
+        comment_data (list or None): List of comment data. If None, an empty tuple will be returned.
+        session (ClientSession): aiohttp ClientSession object.
+
+    Returns:
+        Tuple[Comment] or Tuple: Tuple of Comment objects or an empty tuple if comment_data is None.
+    """
     if not comment_data:
         return ()
 
