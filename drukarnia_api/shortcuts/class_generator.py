@@ -4,10 +4,10 @@ import asyncio
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # always False, used for type hints
-    from drukarnia_api.author import Author
-    from drukarnia_api.article import Article
-    from drukarnia_api.tag import Tag
-    from drukarnia_api.comment import Comment
+    from drukarnia_api.objects.author import Author
+    from drukarnia_api.objects.article import Article
+    from drukarnia_api.objects.tag import Tag
+    from drukarnia_api.objects.comment import Comment
 
 
 async def data2tags(tags_data: list or None, session: ClientSession) -> Tuple['Tag'] or Tuple:
@@ -24,7 +24,7 @@ async def data2tags(tags_data: list or None, session: ClientSession) -> Tuple['T
     if not tags_data:
         return ()
 
-    from drukarnia_api.tag import Tag
+    from drukarnia_api.objects.tag import Tag
 
     tasks = [Tag.from_records(session, tag) for tag in tags_data]
 
@@ -45,7 +45,7 @@ async def data2authors(authors_data: list or None, session: ClientSession) -> Tu
     if not authors_data:
         return ()
 
-    from drukarnia_api.author import Author
+    from drukarnia_api.objects.author import Author
 
     tasks = [Author.from_records(session, author) for author in authors_data]
 
@@ -66,7 +66,7 @@ async def data2articles(articles_data: list or None, session: ClientSession) -> 
     if not articles_data:
         return ()
 
-    from drukarnia_api.article import Article
+    from drukarnia_api.objects.article import Article
 
     tasks = [Article.from_records(session, article) for article in articles_data]
 
@@ -77,7 +77,7 @@ async def data2comments(comment_data: list or None, session: ClientSession) -> T
     if not comment_data:
         return ()
 
-    from drukarnia_api.comment import Comment
+    from drukarnia_api.objects.comment import Comment
 
     tasks = [Comment.from_records(session, comment) for comment in comment_data]
 

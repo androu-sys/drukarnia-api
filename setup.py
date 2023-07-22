@@ -37,7 +37,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["drukarnia_api", "drukarnia_api.drukarnia_base", "drukarnia_api.shortcuts"],
+    packages=["drukarnia_api", "drukarnia_api.network", "drukarnia_api.shortcuts"],
     include_package_data=True,
     install_requires=requirements
 )

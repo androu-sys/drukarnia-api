@@ -1,17 +1,22 @@
-from drukarnia_api.drukarnia_base import Connection
+from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
 
 from typing import TYPE_CHECKING, Tuple, Dict
 
 if TYPE_CHECKING:   # always False, used for type hints
-    from drukarnia_api.article import Article
-    from drukarnia_api.tag import Tag
-    from drukarnia_api.author import Author
+    from drukarnia_api.objects.article import Article
+    from drukarnia_api.objects.tag import Tag
+    from drukarnia_api.objects.author import Author
 
 
-class Search(Connection):
-    async def find_author(self, query: str, create_authors: bool = True, with_relations: bool = False,
-                          offset: int = 0, results_per_page: int = 20, n_collect: int = None,
+class Search(DrukarniaElement):
+    async def find_author(self,
+                          query: str,
+                          create_authors: bool = True,
+                          with_relations: bool = False,
+                          offset: int = 0,
+                          results_per_page: int = 20,
+                          n_collect: int = None,
                           *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
         """
         Search for authors.
@@ -28,8 +33,12 @@ class Search(Connection):
 
         return authors
 
-    async def find_articles(self, query: str, create_articles: bool = True,
-                            offset: int = 0, results_per_page: int = 20, n_collect: int = None,
+    async def find_articles(self,
+                            query: str,
+                            create_articles: bool = True,
+                            offset: int = 0,
+                            results_per_page: int = 20,
+                            n_collect: int = None,
                             *args, **kwargs) -> Tuple['Article'] or Tuple[Dict]:
         """
         Search for articles.
@@ -44,25 +53,24 @@ class Search(Connection):
 
         return articles
 
-    async def find_tags(self, query: str, create_tags: bool = True, get_articles: bool = False,
-                        create_articles: bool = True, offset: int = 0, results_per_page: int = 20,
-                        n_collect: int = None, *args, **kwargs) -> Tuple['Tag'] or Tuple[Dict]:
+    async def find_tags(self,
+                        query: str,
+                        create_tags: bool = True,
+                        offset: int = 0,
+                        results_per_page: int = 20,
+                        n_collect: int = None, **kwargs) -> Tuple['Tag'] or Tuple[Dict]:
         """
         Search for tags.
         """
 
         # Make a request to get articles
-        tags, articles = await self.multi_page_request(f'/api/articles/search/tags?text={query}',
-                                                       list_key=['tags', 'articles'],
-                                                       offset=offset,
-                                                       results_per_page=results_per_page,
-                                                       n_collect=n_collect, *args, **kwargs)
-
-        if get_articles:
-            if create_articles:
-                articles = await data2articles(articles, self.session)
-
-            return tags, articles
+        tags = await self.multi_page_request(
+            f'/api/articles/search/tags?text={query}',
+            key='tags',
+            offset=offset,
+            results_per_page=results_per_page,
+            n_collect=n_collect, **kwargs
+        )
 
         if create_tags:
             tags = await data2tags(tags, self.session)

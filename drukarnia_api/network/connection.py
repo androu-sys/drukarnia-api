@@ -9,21 +9,19 @@ from drukarnia_api.network.headers import Headers
 
 class Connection:
     base_url = 'https://drukarnia.com.ua'
-    cookieJar = DrukarniaCookies()
-    session = None
 
-    def __init__(self, dynamic_user_generation: bool = False, default_headers=None):
-        if default_headers is None:
-            default_headers = {}
+    def __init__(self, headers: Headers = None, cookie_jar: DrukarniaCookies = None, session: ClientSession = None):
+        self.cookieJar = cookie_jar if cookie_jar else DrukarniaCookies()
+        self.headers = headers if headers else Headers()
 
-        self.headers = Headers(
-            dynamic_user_generation,
-            **default_headers
-        )
+        self.session = session
 
     def __call__(self, session: ClientSession = None, *args, **kwargs) -> 'Connection':
         if session:
             self.session = session
+            return self
+
+        elif self.session:
             return self
 
         self.session = ClientSession(
@@ -35,7 +33,7 @@ class Connection:
         return self
 
     async def __aenter__(self):
-        return self
+        return self.session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.session.close()

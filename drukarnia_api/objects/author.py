@@ -1,17 +1,15 @@
-import re
 from datetime import datetime
 from typing import Dict, Tuple, List
-from warnings import warn
 from aiohttp import ClientSession
 
-from drukarnia_api.drukarnia_base import DrukarniaElement
+from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:   # always False, used for type hints
-    from drukarnia_api.article import Article
-    from drukarnia_api.tag import Tag
+    from drukarnia_api.objects.article import Article
+    from drukarnia_api.objects.tag import Tag
 
 
 class Author(DrukarniaElement):
@@ -25,32 +23,9 @@ class Author(DrukarniaElement):
         Log in the author with the provided email and password.
         """
 
-        # Make a POST request to log in the author
-        headers, info = await self.request('post',
-                                           '/api/users/login',
-                                           data={"password": password, "email": email},
-                                           output=['headers', 'json'])
+        self.cookieJar.login(email, password, self)
 
-        if self.author_id and (self.author_id != info['user']['_id']):
-            raise ValueError('You are trying to log into an unrelated author.')
-
-        elif self.username and (self.username != info['user']['username']):
-            raise ValueError('You are trying to log into an unrelated author.')
-
-        elif not (self.author_id or self.username):
-            warn("We weren't able to identify any relationship between the current Author data and the Drukarnia "
-                 "User you are trying to log into. It may cause unexpected and fatal errors. Please consider "
-                 "initializing the Author class with the same username and _id as your Drukarnia User.")
-
-        self._update_data(info['user'])
-
-        headers = str(headers)
-        token = re.search(r'refreshToken=(.*?);', headers).group(1)
-        device_id = re.search(r'deviceId=(.*?);', headers).group(1)
-
-        self._update_headers({'Cookie': f'deviceId={device_id}; token={token};'})
-
-    @DrukarniaElement._control_attr('author_id')
+    @DrukarniaElement.requires_attributes(['author_id'])
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                             n_collect: int = None, *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
         """
@@ -58,7 +33,7 @@ class Author(DrukarniaElement):
         """
 
         # Make a request to get the followers of the author
-        followers = await self.multi_page_request(f'/api/relationships/{self.author_id}/followers',
+        followers = await self.multi_page_request(f'/api/relationships/{await self.author_id}/followers',
                                                   offset, results_per_page, n_collect, *args, **kwargs)
 
         if create_authors:
@@ -66,7 +41,7 @@ class Author(DrukarniaElement):
 
         return followers
 
-    @DrukarniaElement._control_attr('author_id')
+    @DrukarniaElement.requires_attributes(['author_id'])
     async def get_followings(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
                              n_collect: int = None, *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
         """
@@ -74,7 +49,7 @@ class Author(DrukarniaElement):
         """
 
         # Make a request to get the followings of the author
-        followings = await self.multi_page_request(f'/api/relationships/{self.author_id}/following',
+        followings = await self.multi_page_request(f'/api/relationships/{await self.author_id}/following',
                                                    offset, results_per_page, n_collect, *args, **kwargs)
 
         if create_authors:
@@ -82,7 +57,6 @@ class Author(DrukarniaElement):
 
         return followings
 
-    @DrukarniaElement._is_authenticated
     async def get_notifications(self, offset: int = 0, results_per_page: int = 20,
                                 n_collect: int = None, *args, **kwargs) -> List[Dict]:
         """
@@ -92,7 +66,6 @@ class Author(DrukarniaElement):
                                              offset, results_per_page, n_collect,
                                              *args, **kwargs)
 
-    @DrukarniaElement._is_authenticated
     async def get_reads_history(self, create_articles: bool = True, offset: int = 0,
                                 results_per_page: int = 20, n_collect: int = None,
                                 *args, **kwargs) -> List[Dict] or List['Article']:
@@ -108,7 +81,6 @@ class Author(DrukarniaElement):
 
         return articles
 
-    @DrukarniaElement._is_authenticated
     async def get_sections(self, preview: bool = True, **kwargs) -> List[dict]:
         """
         Get the sections of the author's articles.
@@ -116,7 +88,6 @@ class Author(DrukarniaElement):
         return await self.request('get', f'/api/articles/bookmarks/lists?preview={str(preview).lower()}',
                                   output='json', **kwargs)
 
-    @DrukarniaElement._is_authenticated
     async def create_section(self, name: str, **kwargs) -> List[Dict]:
         """
         Create a new section for the author's articles.
@@ -128,14 +99,12 @@ class Author(DrukarniaElement):
 
         return section_id.decode('utf-8')
 
-    @DrukarniaElement._is_authenticated
     async def delete_section(self, section_id: str, **kwargs) -> None:
         """
         Delete a section for the author's articles.
         """
         await self.request('delete', f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
 
-    @DrukarniaElement._is_authenticated
     async def subscribe_author(self, author_id: str, unsubscribe: bool = False) -> None:
         """
         Subscribe or unsubscribe to/from an author.
@@ -147,7 +116,6 @@ class Author(DrukarniaElement):
 
         await self.request('post', f'/api/relationships/subscribe/{author_id}')
 
-    @DrukarniaElement._is_authenticated
     async def block_author(self, author_id: str, unblock: bool = False) -> None:
         """
         Block or unblock an author.
@@ -158,7 +126,6 @@ class Author(DrukarniaElement):
 
         await self.request('put', f'/api/relationships/block/{author_id}')
 
-    @DrukarniaElement._is_authenticated
     async def get_blocked(self, create_authors: bool = False) -> List[Dict] or Tuple['Author']:
         """
         Get the authors blocked by the current author.
@@ -171,7 +138,6 @@ class Author(DrukarniaElement):
 
         return authors
 
-    @DrukarniaElement._is_authenticated
     async def change_password(self, old_password: str, new_password: str, **kwargs) -> None:
         """
         Change the author's password.
@@ -180,7 +146,6 @@ class Author(DrukarniaElement):
                            data={"oldPassword": old_password, "newPassword": new_password},
                            output='read', **kwargs)
 
-    @DrukarniaElement._is_authenticated
     async def change_user_info(self, name: str = None, description: str = None, username: str = None,
                                description_short: str = None, socials: dict = None, donate_url: str = None) -> str:
         """
@@ -195,7 +160,6 @@ class Author(DrukarniaElement):
         response = await self.request('patch', '/api/users', data=info2patch, output='read')
         return response.decode('utf-8')
 
-    @DrukarniaElement._is_authenticated
     async def change_email(self, current_password: str, new_email: str, **kwargs) -> None:
         """
         Change the author's email.
@@ -204,13 +168,13 @@ class Author(DrukarniaElement):
                            data={"currentPassword": current_password, "newEmail": new_email},
                            **kwargs)
 
-    @DrukarniaElement._control_attr('username')
+    @DrukarniaElement.requires_attributes(['username'])
     async def collect_data(self, return_: bool = False) -> Dict or None:
         """
         Collect the author's data and update the object's attributes.
         """
 
-        data = await self.request('get', '/api/users/profile/{username}'.format(username=self.username),
+        data = await self.request('get', '/api/users/profile/{username}'.format(username=await self.username),
                                   output='json')
 
         self._update_data(data)
@@ -219,52 +183,64 @@ class Author(DrukarniaElement):
             return data
 
     @property
-    def username(self) -> str:
-        return self._get_basetype_from_data('username', str)
+    @DrukarniaElement.type_decorator(str)
+    async def username(self) -> str:
+        return self._access_data('username')
 
     @property
-    def avatar(self) -> str:
-        return self._get_basetype_from_data('avatar', str)
+    @DrukarniaElement.type_decorator(str)
+    async def avatar(self) -> str:
+        return self._access_data('avatar')
 
     @property
-    def donate_url(self) -> str:
-        return self._get_basetype_from_data('donateUrl', str)
+    @DrukarniaElement.type_decorator(str)
+    async def donate_url(self) -> str:
+        return self._access_data('donateUrl')
 
     @property
-    def socials(self) -> Dict:
-        return self._get_basetype_from_data('socials', dict)
+    @DrukarniaElement.type_decorator(str)
+    async def socials(self) -> Dict:
+        return self._access_data('socials')
 
     @property
-    def author_id(self) -> str:
-        return self._get_basetype_from_data('_id', str)
+    @DrukarniaElement.type_decorator(str)
+    async def author_id(self) -> str:
+        return self._access_data('_id')
 
     @property
-    def name(self) -> str:
-        return self._get_basetype_from_data('name', str)
+    @DrukarniaElement.type_decorator(str)
+    async def name(self) -> str:
+        return self._access_data('name')
 
     @property
-    def description(self) -> str:
-        return self._get_basetype_from_data('description', str)
+    @DrukarniaElement.type_decorator(str)
+    async def description(self) -> str:
+        return self._access_data('description')
 
     @property
-    def description_short(self) -> str:
-        return self._get_basetype_from_data('descriptionShort', str)
+    @DrukarniaElement.type_decorator(str)
+    async def description_short(self) -> str:
+        return self._access_data('descriptionShort')
 
     @property
-    def created_at(self) -> datetime:
-        return self._get_datetime_from_author_data('createdAt')
+    @DrukarniaElement.type_decorator(datetime)
+    async def created_at(self) -> datetime:
+        return self._access_data('createdAt')
 
     @property
-    def following_num(self) -> int:
-        return self._get_basetype_from_data('followingNum', int)
+    @DrukarniaElement.type_decorator(int)
+    async def following_num(self) -> int:
+        return self._access_data('followingNum')
 
     @property
-    def followers_num(self) -> int:
-        return self._get_basetype_from_data('followersNum', int)
+    @DrukarniaElement.type_decorator(int)
+    async def followers_num(self) -> int:
+        return self._access_data('followersNum')
 
     @property
-    def read_num(self) -> int:
-        return self._get_basetype_from_data('readNum', int)
+    @DrukarniaElement.type_decorator(int)
+    async def read_num(self) -> int:
+        return self._access_data('readNum')
 
     @property
     async def articles(self) -> Tuple['Article']:
@@ -275,8 +251,9 @@ class Author(DrukarniaElement):
         return await data2tags(self._access_data('authorTags', []), self.session)
 
     @property
-    def relationships(self) -> Dict:
-        return self._get_basetype_from_data('relationships', dict)
+    @DrukarniaElement.type_decorator(dict)
+    async def relationships(self) -> Dict:
+        return self._access_data('relationships')
 
     @staticmethod
     async def from_records(session: ClientSession, new_data: dict) -> 'Author':

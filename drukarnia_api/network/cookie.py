@@ -6,9 +6,9 @@ if TYPE_CHECKING:
     from drukarnia_api.network.connection import Connection
 
 
-async def _login(email: str, password: str, session: Connection) -> Tuple[str, Dict[str, Any]]:
+async def _login(email: str, password: str, connection: Connection) -> Tuple[str, Dict[str, Any]]:
     # Make a POST request to log in the author
-    headers, info = await session.request(
+    headers, info = await connection.request(
         'post',
         '/api/users/login',
         data={"password": password, "email": email},
@@ -30,6 +30,6 @@ class DrukarniaCookies(CookieJar):
     def __init__(self):
         super().__init__(unsafe=True)  # Set unsafe=True to allow third-party cookies.
 
-    def login(self, email: str, password: str, session: Connection):
-        cookie_str, self.owner = await _login(email, password, session)
+    def login(self, email: str, password: str, connection: Connection):
+        cookie_str, self.owner = await _login(email, password, connection)
         self.load(cookie_str)

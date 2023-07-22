@@ -2,15 +2,15 @@ from datetime import datetime
 from warnings import warn
 from aiohttp import ClientSession
 
-from drukarnia_api.drukarnia_base import DrukarniaElement
+from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2authors, data2articles, data2tags, data2comments
 
-from typing import TYPE_CHECKING, Tuple, Dict, List
+from typing import TYPE_CHECKING, Tuple, Dict
 
 if TYPE_CHECKING:  # always False, used for type hints
-    from drukarnia_api.author import Author
-    from drukarnia_api.tag import Tag
-    from drukarnia_api.comment import Comment
+    from drukarnia_api.objects.author import Author
+    from drukarnia_api.objects.tag import Tag
+    from drukarnia_api.objects.comment import Comment
 
 
 class Article(DrukarniaElement):
@@ -22,19 +22,20 @@ class Article(DrukarniaElement):
 
         self._update_data({'slug': slug, '_id': article_id})
 
-    @DrukarniaElement._control_attr('article_id')
-    @DrukarniaElement._is_authenticated
+    @DrukarniaElement.requires_attributes(['article_id'])
     async def post_comment(self, comment_text: str) -> str:
         """
         Posts a comment on the article and returns the ID of the posted comment.
         """
 
-        posted_comment_id = await self.request('post', '/api/articles/{_id}/comments'.format(_id=self.article_id),
-                                               data={'comment': comment_text}, output='read')
+        posted_comment_id = await self.request(
+            'post',
+            '/api/articles/{_id}/comments'.format(_id=await self.article_id),
+            data={'comment': comment_text}, output='read')
+
         return str(posted_comment_id)
 
-    @DrukarniaElement._control_attr('article_id')
-    @DrukarniaElement._is_authenticated
+    @DrukarniaElement.requires_attributes(['article_id'])
     async def like_article(self, n_likes: int) -> None:
         """
         Likes the article with the specified number of likes.
@@ -43,33 +44,32 @@ class Article(DrukarniaElement):
         if not (0 <= n_likes <= 10):
             raise ValueError('Number of likes must be greater or equal to zero and lower or equal to ten')
 
-        await self.request('post', f'/api/articles/{self.article_id}/like', data={'likes': n_likes})
+        await self.request('post', f'/api/articles/{await self.article_id}/like', data={'likes': n_likes})
 
-    @DrukarniaElement._control_attr('article_id')
-    @DrukarniaElement._is_authenticated
+    @DrukarniaElement.requires_attributes(['article_id'])
     async def bookmark(self, section_id: str = '', unbookmark: bool = False) -> None:
         """
         Adds or removes the article from bookmarks based on the 'unbookmark' parameter.
         """
 
         if unbookmark:
-            await self.request('delete', f'/api/articles/{self.article_id}/bookmarks')
+            await self.request('delete', f'/api/articles/{await self.article_id}/bookmarks')
 
         elif not section_id:
             raise ValueError('section_id must be passed for bookmarking')
 
         else:
             await self.request('post', '/api/articles/bookmarks',
-                               data={"article": self.article_id, "list": section_id})
+                               data={"article": await self.article_id, "list": section_id})
 
-    @DrukarniaElement._control_attr('slug')
+    @DrukarniaElement.requires_attributes(['slug'])
     async def collect_data(self, return_: bool = False) -> Dict or None:
         """
         Collects the article's data and updates the object's attributes.
         If 'return_' is True, returns the collected data.
         """
 
-        data = await self.request('get', f'/api/articles/{self.slug}', output='json')
+        data = await self.request('get', f'/api/articles/{await self.slug}', output='json')
 
         self._update_data(data)
 
@@ -102,41 +102,6 @@ class Article(DrukarniaElement):
         return await data2articles(self._access_data('recommendedArticles', []), self.session)
 
     @property
-    def relationships(self) -> Dict:
-        """
-        Retrieves the relationships of the article.
-        """
-        return self._get_basetype_from_data('relationships', dict)
-
-    @property
-    def is_bookmarked(self) -> bool:
-        """
-        Checks if the article is bookmarked.
-        """
-        return self._get_basetype_from_data('isBookmarked', bool)
-
-    @property
-    def is_liked(self) -> bool:
-        """
-        Checks if the article is liked.
-        """
-        return self._get_basetype_from_data('isLiked', bool)
-
-    @property
-    def sensitive(self) -> bool:
-        """
-        Checks if the article is sensitive.
-        """
-        return self._get_basetype_from_data('sensitive', bool)
-
-    @property
-    def content(self) -> Dict:
-        """
-        Retrieves the content of the article.
-        """
-        return self._get_basetype_from_data('content', dict)
-
-    @property
     async def author_articles(self) -> Tuple['Article']:
         """
         Retrieves the articles written by the author of the article.
@@ -144,60 +109,108 @@ class Article(DrukarniaElement):
         return await data2articles(self._access_data('authorArticles', []), self.session)
 
     @property
-    def thumb_picture(self) -> str:
+    @DrukarniaElement.type_decorator(dict)
+    async def relationships(self) -> Dict:
+        """
+        Retrieves the relationships of the article.
+        """
+        return self._access_data('relationships')
+
+    @property
+    @DrukarniaElement.type_decorator(bool)
+    async def is_bookmarked(self) -> bool:
+        """
+        Checks if the article is bookmarked.
+        """
+        return self._access_data('isBookmarked')
+
+    @property
+    @DrukarniaElement.type_decorator(bool)
+    async def is_liked(self) -> bool:
+        """
+        Checks if the article is liked.
+        """
+        return self._access_data('isLiked')
+
+    @property
+    @DrukarniaElement.type_decorator(bool)
+    async def sensitive(self) -> bool:
+        """
+        Checks if the article is sensitive.
+        """
+        return self._access_data('sensitive')
+
+    @property
+    @DrukarniaElement.type_decorator(dict)
+    async def content(self) -> Dict:
+        """
+        Retrieves the content of the article.
+        """
+        return self._access_data('content')
+
+    @property
+    @DrukarniaElement.type_decorator(str)
+    async def thumb_picture(self) -> str:
         """
         Retrieves the thumbnail picture of the article.
         """
-        return self._get_basetype_from_data('thumbPicture', str)
+        return self._access_data('thumbPicture')
 
     @property
-    def picture(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def picture(self) -> str:
         """
         Retrieves the picture of the article.
         """
-        return self._get_basetype_from_data('picture', str)
+        return self._access_data('picture')
 
     @property
-    def ads(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def ads(self) -> str:
         """
         Retrieves the ads of the article.
         """
-        return self._get_basetype_from_data('ads', str)
+        return self._access_data('ads')
 
     @property
-    def index(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def index(self) -> str:
         """
         Retrieves the index of the article.
         """
-        return self._get_basetype_from_data('index', str)
+        return self._access_data('index')
 
     @property
-    def created_at(self) -> datetime:
+    @DrukarniaElement.type_decorator(datetime)
+    async def created_at(self) -> datetime:
         """
         Retrieves the creation date of the article.
         """
-        return self._get_datetime_from_author_data('createdAt')
+        return self._access_data('createdAt')
 
     @property
-    def read_time(self) -> float:
+    @DrukarniaElement.type_decorator(float)
+    async def read_time(self) -> float:
         """
         Retrieves the read time of the article.
         """
-        return self._get_basetype_from_data('readTime', float)
+        return self._access_data('readTime')
 
     @property
-    def number_of_like(self) -> int:
+    @DrukarniaElement.type_decorator(int)
+    async def number_of_like(self) -> int:
         """
         Retrieves the number of likes of the article.
         """
-        return self._get_basetype_from_data('description', int)
+        return self._access_data('description')
 
     @property
-    def number_of_comment(self) -> int:
+    @DrukarniaElement.type_decorator(int)
+    async def number_of_comment(self) -> int:
         """
         Retrieves the number of comments of the article.
         """
-        return self._get_basetype_from_data('commentNum', int)
+        return self._access_data('commentNum')
 
     @property
     async def article_tags(self) -> Tuple['Tag']:
@@ -219,9 +232,9 @@ class Article(DrukarniaElement):
         Retrieves the main tag of the article.
         """
 
-        main_id = self._get_basetype_from_data('mainTagId', str)
-        main_name = self._get_basetype_from_data('mainTag', str)
-        main_slug = self._get_basetype_from_data('mainTagSlug', str)
+        main_id = self._access_data('mainTagId', str)
+        main_name = self._access_data('mainTag', str)
+        main_slug = self._access_data('mainTagSlug', str)
 
         if not (main_id and main_name and main_slug):
             return None
@@ -231,39 +244,44 @@ class Article(DrukarniaElement):
         return main_tag
 
     @property
-    def description(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def description(self) -> str:
         """
         Retrieves the description of the article.
         """
-        return self._get_basetype_from_data('description', str)
+        return self._access_data('description')
 
     @property
-    def seo_title(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def seo_title(self) -> str:
         """
         Retrieves the SEO title of the article.
         """
-        return self._get_basetype_from_data('seoTitle', str)
+        return self._access_data('seoTitle')
 
     @property
-    def title(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def title(self) -> str:
         """
         Retrieves the title of the article.
         """
-        return self._get_basetype_from_data('title', str)
+        return self._access_data('title')
 
     @property
-    def article_id(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def article_id(self) -> str:
         """
         Retrieves the ID of the article.
         """
-        return self._get_basetype_from_data('_id', str)
+        return self._access_data('_id')
 
     @property
-    def slug(self) -> str:
+    @DrukarniaElement.type_decorator(str)
+    async def slug(self) -> str:
         """
         Retrieves the slug of the article.
         """
-        return self._get_basetype_from_data('slug', str)
+        return self._access_data('slug')
 
     @staticmethod
     async def from_records(session: ClientSession, new_data: dict) -> 'Article':
