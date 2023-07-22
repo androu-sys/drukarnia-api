@@ -9,6 +9,7 @@ class DrukarniaAPIError(Exception):
             request_type (str): The type of the API request.
             request_url (str): The URL of the API request.
         """
+
         self.message = message
         self.status_code = status_code
         self.request_type = request_type
@@ -23,31 +24,6 @@ class DrukarniaAPIError(Exception):
         Response Status: {self.status_code}
         Request To: {self.request_url}
         Error Message: "{self.message}"
-        """
-
-        return text
-
-
-class DrukarniaElementDataError(Exception):
-    def __init__(self, attr_name: str, solution: str):
-        """
-        Custom exception class for handling errors related to missing attributes in Drukarnia element data.
-
-        Args:
-            attr_name (str): The name of the missing attribute.
-            method_name (str): The name of the method where the attribute was expected.
-            solution (str): Possible solution to resolve the error.
-        """
-        self.attr_name = attr_name
-        self.solution = solution
-
-    def __str__(self):
-        """
-        Returns a string representation of the exception.
-        """
-        text = f"""
-        Attribute {self.attr_name} has not been found.
-        Possible solution: {self.solution}
         """
 
         return text
