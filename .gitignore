@@ -127,3 +127,6 @@ fabric.properties
 /test.ipynb
 /.ipynb_checkpoints/
 /drukarnia_api/shortcuts/__pycache__
+
+
+/docs/
