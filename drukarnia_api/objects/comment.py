@@ -1,10 +1,10 @@
 from aiohttp import ClientSession
 
 from drukarnia_api.objects.base_object import DrukarniaElement
-from drukarnia_api.shortcuts import data2authors
+from drukarnia_api.shortcuts import data2authors, data2comments
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, Dict
 
 if TYPE_CHECKING:  # always False, used for type hints
     from drukarnia_api.objects.author import Author
@@ -45,6 +45,24 @@ class Comment(DrukarniaElement):
         await self.request(
             'delete',
             f'/api/articles/{await self.article_id}/comments/{await self.comment_id}')
+
+    @DrukarniaElement.requires_attributes(['article_id', 'comment_id'])
+    async def get_replies(self,
+                          create_comments: bool = True) -> Tuple['Comment'] or Tuple[Dict]:
+        """
+        Deletes a comment from the article.
+        """
+
+        replies = await self.request(
+            'get',
+            f'/api/articles/{await self.article_id}/comments/{await self.comment_id}/replies',
+            output='json'
+        )
+
+        if create_comments:
+            replies = await data2comments(replies, session=self.session)
+
+        return replies
 
     @DrukarniaElement.requires_attributes(['article_id'])
     async def like_comment(self, unlike: bool = False) -> None:

@@ -1,4 +1,5 @@
-from aiohttp.cookiejar import CookieJar
+from aiohttp.cookiejar import SimpleCookie
+from aiohttp import ClientSession
 import re
 from typing import TYPE_CHECKING, Tuple, Dict, Any
 
@@ -36,16 +37,17 @@ async def _login(email: str, password: str, connection: 'Connection') -> Tuple[s
     return cookies, info
 
 
-class DrukarniaCookies(CookieJar):
-    owner = None
-
-    def __init__(self):
+class DrukarniaCookies(SimpleCookie):
+    def __init__(self, *args, **kwargs):
         """
         Initializes the DrukarniaCookies class, a subclass of CookieJar.
 
         The unsafe parameter is set to True to allow third-party cookies.
         """
-        super().__init__(unsafe=True)
+        super().__init__(*args, **kwargs)
+
+        self.owner = None
+        self.__authenticated = False
 
     async def login(self, email: str, password: str, connection: 'Connection'):
         """
@@ -56,5 +58,16 @@ class DrukarniaCookies(CookieJar):
             password (str): The password of the user.
             connection ('Connection'): An instance of the 'Connection' class used to make HTTP requests.
         """
+
         cookie_str, self.owner = await _login(email, password, connection)
         self.load(cookie_str)
+
+        self.__authenticated = True
+
+    @property
+    def authenticated(self) -> bool:
+        return self.__authenticated
+
+    @staticmethod
+    def sync_from_aiohttp_session(session: ClientSession) -> 'DrukarniaCookies':
+        return DrukarniaCookies(session.cookie_jar.filter_cookies('/'))

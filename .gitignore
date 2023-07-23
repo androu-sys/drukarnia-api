@@ -124,7 +124,7 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm
-/test.ipynb
+# /usage.ipynb
 /.ipynb_checkpoints/
 /drukarnia_api/shortcuts/__pycache__
 

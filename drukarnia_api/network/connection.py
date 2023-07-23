@@ -1,4 +1,5 @@
 import asyncio
+
 from aiohttp import ClientSession
 from typing import Any, Callable, Dict, Generator, Tuple, List, Iterable
 
@@ -10,58 +11,44 @@ from drukarnia_api.network.headers import Headers
 class Connection:
     base_url = 'https://drukarnia.com.ua'
 
-    def __init__(self, headers: Headers = None, cookie_jar: DrukarniaCookies = None, session: ClientSession = None):
+    def __init__(self, headers: Headers = None, cookies: DrukarniaCookies = None, session: ClientSession = None):
         """
         Initialize a Connection object.
 
         Parameters:
             headers (Headers, optional): Headers to be used for the requests. Defaults to None.
-            cookie_jar (DrukarniaCookies, optional): Cookie jar to be used for the requests. Defaults to None.
+            cookies (DrukarniaCookies, optional): Cookie jar to be used for the requests. Defaults to None.
             session (ClientSession, optional): Custom aiohttp ClientSession to be used for the requests.
             Defaults to None.
         """
-        self.cookieJar = cookie_jar if cookie_jar else DrukarniaCookies()
+        self.cookies = DrukarniaCookies.sync_from_aiohttp_session(session) if session else cookies
         self.headers = headers if headers else Headers()
 
         self.session = session
         self.custom_session = session is not None
 
-    def __call__(self, session: ClientSession = None, *args, **kwargs) -> 'Connection':
-        """
-        Create or reuse an aiohttp ClientSession for making requests.
-
-        Parameters:
-            session (ClientSession, optional): Custom aiohttp ClientSession to be used for the requests.
-            Defaults to None.
-
-        Returns:
-            Connection: The Connection instance with the specified session or the existing session.
-        """
-        if session:
-            self.session = session
-            return self
-
-        elif self.session:
-            return self
-
-        self.session = ClientSession(
-            base_url=self.base_url,
-            cookie_jar=self.cookieJar,
-            *args, **kwargs
-        )
-
-        return self
-
-    async def __aenter__(self):
+    async def __aenter__(self) -> None:
         """
         Context manager entry method for the Connection.
 
         Returns:
             Connection: The Connection instance.
         """
-        return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session and (not self.session.closed):
+            return
+
+        self.cookies = (cookies := self.cookies if self.cookies else DrukarniaCookies())
+
+        self.session = ClientSession(
+            base_url=self.base_url,
+            cookies=cookies,
+            headers=self.headers
+        )
+
+        self.custom_session = False
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         """
         Context manager exit method for the Connection.
 
@@ -70,8 +57,10 @@ class Connection:
             exc_val: Exception value.
             exc_tb: Exception traceback.
         """
-        if self.custom_session is False:
+
+        if self.session and (self.custom_session is False):
             await self.session.close()
+            self.session = None
 
     async def request(self, method: str, url: str, output: str or list = None, **kwargs) -> Any:
         """
@@ -86,10 +75,17 @@ class Connection:
         Returns:
             Any: The result of the HTTP request, parsed based on the provided output format.
         """
-        if method in ['post', 'put', 'patch']:
+
+        if (self.session is None) or self.session.closed:
+            raise ValueError(f'Trying to make request from an unopened/closed session.\n'
+                             f'Solutions |: initialize object with a session.\n'
+                             f'Solution || (recommended): use context manager as follows ```async with '
+                             f'{self.__class__.__name__}(*args, **kwargs):```')
+
+        if method.lower() in ['post', 'put', 'patch', 'delete']:
             kwargs['data'] = await to_json(kwargs.get('data', {}))
 
-        async with self.session.request(method.upper(), url, headers=self.headers.static, **kwargs) as response:
+        async with self.session.request(method.upper(), url, **kwargs) as response:
             return await _from_response(response, output)
 
     async def request_pool(self, heuristics: Iterable[Dict[str, Any]]) -> Tuple:

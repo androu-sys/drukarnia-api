@@ -58,7 +58,7 @@ class Article(DrukarniaElement):
         - ValueError: If the number of likes is not between 0 and 10 (inclusive).
         """
 
-        assert 0 <= n_likes <= 10, 'Number of likes must be greater or equal to zero and lower or equal to ten'
+        assert 0 < n_likes <= 10, 'Number of likes must be greater or equal to zero and lower or equal to ten'
 
         await self.request('post', f'/api/articles/{await self.article_id}/like', data={'likes': n_likes})
 
@@ -177,8 +177,8 @@ class Article(DrukarniaElement):
         return self._access_data('isBookmarked')
 
     @property
-    @DrukarniaElement.type_decorator(bool)
-    async def is_liked(self) -> bool:
+    @DrukarniaElement.type_decorator(int)
+    async def my_likes(self) -> int:
         """
         Checks if the article is liked.
 
@@ -294,7 +294,7 @@ class Article(DrukarniaElement):
         - int: The number of likes of the article.
         """
 
-        return self._access_data('description')
+        return self._access_data('likeNum')
 
     @property
     @DrukarniaElement.type_decorator(int)

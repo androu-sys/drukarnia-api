@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any, Callable, TypeVar, List, Awaitable
-from functools import wraps
 from attrdict import AttrDict
 from drukarnia_api.network.connection import Connection
 
@@ -49,7 +48,10 @@ def _to_datetime(date: str) -> datetime:
 
 
 class DrukarniaElement(Connection):
-    properties = AttrDict({})
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.data = AttrDict({})
 
     def _update_data(self, new_data: dict):
         """
@@ -58,7 +60,7 @@ class DrukarniaElement(Connection):
         Parameters:
             new_data (dict): The new data to update the properties with.
         """
-        self.properties.update(new_data)
+        self.data.update(new_data)
 
     def _access_data(self, key: str, default: Any = None) -> Any:
         """
@@ -71,7 +73,7 @@ class DrukarniaElement(Connection):
         Returns:
             Any: The value associated with the given key or the default value if the key is not found.
         """
-        return self.properties.get(key, default)
+        return self.data.get(key, default)
 
     async def multi_page_request(self, direct_url: str, offset: int = 0, results_per_page: int = 20,
                                  n_collect: int = None, key: str = None, **kwargs) -> List:
@@ -90,7 +92,7 @@ class DrukarniaElement(Connection):
             List: A list of records extracted from the paginated data.
         """
         assert offset >= 0, 'Offset must be greater than or equal to zero.'
-        assert n_collect >= 1, 'n_collect must be greater than or equal to one.'
+        assert (n_collect is None) or (n_collect >= 1), 'n_collect must be greater than or equal to one.'
 
         n_results = (n_collect // results_per_page + int(n_collect % results_per_page != 0)) if n_collect else None
 
@@ -123,21 +125,21 @@ class DrukarniaElement(Connection):
             Callable: The decorated method with enforced return type.
         """
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
-            @wraps(func)
             async def wrapper(*args, **kwargs) -> T:
                 result = await func(*args, **kwargs)
+                if result is None: return
 
-                if isinstance(return_type, datetime):
+                if return_type is datetime:
                     return _to_datetime(str(result))
 
-                return return_type(result) if result is not None else None
+                return return_type(result)
 
             return wrapper
 
         return decorator
 
     @staticmethod
-    def requires_attributes(attrs: List[str], solution: str = 'await collect_date() before.') -> Callable:
+    def requires_attributes(attrs: List[str], solution: str = 'await collect_data() before.') -> Callable:
         """
         A decorator to ensure that certain attributes are present before executing a method.
 
@@ -149,10 +151,10 @@ class DrukarniaElement(Connection):
             Callable: The decorated method with attribute requirement checks.
         """
         def decorator(func: Callable[..., Awaitable]):
-            @wraps(func)
             async def wrapper(self_instance, *args, **kwargs):
-                if not all(getattr(self_instance, attr, None) for attr in attrs):
-                    raise ValueError(f'Attributes {attrs} are required for this method. Possible solutions: {solution}')
+                if any([(await getattr(self_instance, attr)) is None for attr in attrs]):
+                    raise ValueError(f'This function requires attributes {attrs}, '
+                                     f'which are missing. Possible solutions: {solution}')
 
                 return await func(self_instance, *args, **kwargs)
 

@@ -22,17 +22,18 @@ async def _from_response(response: ClientResponse, output: str or List[str] or N
         Any: The extracted data based on the provided output.
     """
 
-    if int(response.status) >= 400:
+    # for some reason Drukarnia uses 2xx (> 201) codes for errors
+    if int(response.status) > 201:
         data = await response.json()
         raise DrukarniaAPIError(data['message'], response.status,
                                 response.request_info.method, str(response.request_info.url))
 
-    if isinstance(output, str):
-        data = await _from_response(response, [output])
-        return data[0]
-
     if output is None:
         return []
+
+    elif isinstance(output, str):
+        data = await _from_response(response, [output])
+        return data[0]
 
     data = []
     for func_name in output:

@@ -23,7 +23,6 @@ class Author(DrukarniaElement):
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
         """
-
         super().__init__(*args, **kwargs)
 
         self._update_data({'username': username, '_id': author_id})
@@ -40,7 +39,8 @@ class Author(DrukarniaElement):
             None
         """
 
-        self.cookieJar.login(email, password, self)
+        await self.cookies.login(email, password, self)
+        self._update_data(self.cookies.owner['user'])
 
     @DrukarniaElement.requires_attributes(['author_id'])
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
@@ -186,12 +186,12 @@ class Author(DrukarniaElement):
         """
         await self.request('delete', f'/api/articles/bookmarks/lists/{section_id}', **kwargs)
 
-    async def subscribe_author(self, author_id: str, unsubscribe: bool = False) -> None:
+    @DrukarniaElement.requires_attributes(['author_id'])
+    async def subscribe(self, unsubscribe: bool = False) -> None:
         """
         Subscribe or unsubscribe to/from an author.
 
         Parameters:
-            author_id (str): The ID of the author to subscribe/unsubscribe.
             unsubscribe (bool, optional): Whether to unsubscribe. Defaults to False.
 
         Returns:
@@ -199,17 +199,17 @@ class Author(DrukarniaElement):
         """
 
         if unsubscribe:
-            await self.request('delete', f'/api/relationships/subscribe/{author_id}')
+            await self.request('delete', f'/api/relationships/subscribe/{await self.author_id}')
             return None
 
-        await self.request('post', f'/api/relationships/subscribe/{author_id}')
+        await self.request('post', f'/api/relationships/subscribe/{await self.author_id}')
 
-    async def block_author(self, author_id: str, unblock: bool = False) -> None:
+    @DrukarniaElement.requires_attributes(['author_id'])
+    async def block(self, unblock: bool = False) -> None:
         """
         Block or unblock an author.
 
         Parameters:
-            author_id (str): The ID of the author to block/unblock.
             unblock (bool, optional): Whether to unblock. Defaults to False.
 
         Returns:
@@ -217,10 +217,10 @@ class Author(DrukarniaElement):
         """
 
         if unblock:
-            await self.request('patch', f'/api/relationships/block/{author_id}')
+            await self.request('patch', f'/api/relationships/block/{await self.author_id}')
             return None
 
-        await self.request('put', f'/api/relationships/block/{author_id}')
+        await self.request('put', f'/api/relationships/block/{await self.author_id}')
 
     async def get_blocked(self, create_authors: bool = False) -> List[Dict] or Tuple['Author']:
         """
@@ -297,7 +297,7 @@ class Author(DrukarniaElement):
                            data={"currentPassword": current_password, "newEmail": new_email},
                            **kwargs)
 
-    @DrukarniaElement.requires_attributes(['username'])
+    @DrukarniaElement.requires_attributes(['username'], solution='provide username while initializing Author.')
     async def collect_data(self, return_: bool = False) -> Dict or None:
         """
         Collect the author's data and update the object's attributes.
@@ -480,8 +480,30 @@ class Author(DrukarniaElement):
         """
         return self._access_data('relationships')
 
+    @property
+    @DrukarniaElement.type_decorator(bool)
+    async def is_subscribed(self) -> bool:
+        """
+        Get the subscription state.
+
+        Returns:
+            Bool: True if you follow this author, otherwise False
+        """
+        return self._access_data('relationships').get('isSubscribed', None)
+
+    @property
+    @DrukarniaElement.type_decorator(bool)
+    async def is_blocked(self) -> bool:
+        """
+        Get the blocked state.
+
+        Returns:
+            Bool: True if you blocked this author, otherwise False
+        """
+        return self._access_data('relationships').get('isBlocked', None)
+
     @staticmethod
-    async def from_records(session: ClientSession, new_data: dict) -> 'Author':
+    async def from_records(session: ClientSession, new_data: Dict) -> 'Author':
         """
         Create an Author instance from records.
 
@@ -492,8 +514,10 @@ class Author(DrukarniaElement):
         Returns:
             Author: An Author instance.
         """
+
         new_author = Author(session=session)
         new_author._update_data(new_data)
+
         return new_author
 
     def __hash__(self) -> int:
