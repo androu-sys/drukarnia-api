@@ -60,7 +60,10 @@ class Article(DrukarniaElement):
 
         assert 0 < n_likes <= 10, 'Number of likes must be greater or equal to zero and lower or equal to ten'
 
-        await self.request('post', f'/api/articles/{await self.article_id}/like', data={'likes': n_likes})
+        await self.request(
+            'post',
+            f'/api/articles/{await self.article_id}/like',
+            data={'likes': int(n_likes)})
 
     @DrukarniaElement.requires_attributes(['article_id'])
     async def bookmark(self, section_id: str, unbookmark: bool = False) -> None:
@@ -286,7 +289,7 @@ class Article(DrukarniaElement):
 
     @property
     @DrukarniaElement.type_decorator(int)
-    async def number_of_like(self) -> int:
+    async def number_of_likes(self) -> int:
         """
         Retrieves the number of likes of the article.
 
@@ -298,7 +301,7 @@ class Article(DrukarniaElement):
 
     @property
     @DrukarniaElement.type_decorator(int)
-    async def number_of_comment(self) -> int:
+    async def number_of_comments(self) -> int:
         """
         Retrieves the number of comments of the article.
 
