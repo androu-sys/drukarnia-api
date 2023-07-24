@@ -4,6 +4,7 @@ from aiohttp import ClientSession
 
 from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
+from drukarnia_api.objects._search import _find_author
 
 from typing import TYPE_CHECKING
 
