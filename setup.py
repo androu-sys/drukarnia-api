@@ -29,15 +29,11 @@ setup(
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["drukarnia_api", "drukarnia_api.network", "drukarnia_api.shortcuts"],
+    packages=["drukarnia_api", "drukarnia_api.network", "drukarnia_api.shortcuts", "drukarnia_api.objects"],
     include_package_data=True,
     install_requires=requirements
 )
