@@ -490,7 +490,7 @@ class Author(DrukarniaElement):
         Returns:
             Bool: True if you follow this author, otherwise False
         """
-        return self._access_data('relationships').get('isSubscribed', None)
+        return self._access_data('relationships', {}).get('isSubscribed', None)
 
     @property
     @DrukarniaElement.type_decorator(bool)
@@ -501,7 +501,7 @@ class Author(DrukarniaElement):
         Returns:
             Bool: True if you blocked this author, otherwise False
         """
-        return self._access_data('relationships').get('isBlocked', None)
+        return self._access_data('relationships', {}).get('isBlocked', None)
 
     @staticmethod
     async def from_records(session: ClientSession, new_data: Dict) -> 'Author':
