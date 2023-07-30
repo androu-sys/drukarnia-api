@@ -16,7 +16,9 @@ async def get_author_article_titles():
     search = Search()
     
     async with search:
-        cupomanka, *_ = await search.find_author('cupomanka') 
+        search_res = await search.find_author('cupomanka')
+        # most probable
+        cupomanka = search_res[0]
 
         # Collect all data about the user
         await cupomanka.collect_data()

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Union
 from aiohttp import ClientSession
 
 from drukarnia_api.objects.base_object import DrukarniaElement
@@ -44,7 +44,7 @@ class Author(DrukarniaElement):
 
     @DrukarniaElement.requires_attributes(['author_id'])
     async def get_followers(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
-                            n_collect: int = None, *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
+                            n_collect: int = None, *args, **kwargs) -> Union[Tuple['Author'], Tuple[Dict]]:
         """
         Get the followers of the author.
 
@@ -71,7 +71,7 @@ class Author(DrukarniaElement):
 
     @DrukarniaElement.requires_attributes(['author_id'])
     async def get_followings(self, create_authors: bool = True, offset: int = 0, results_per_page: int = 20,
-                             n_collect: int = None, *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
+                             n_collect: int = None, *args, **kwargs) -> Union[Tuple['Author'], Tuple[Dict]]:
         """
         Get the followings of the author.
 
@@ -117,7 +117,7 @@ class Author(DrukarniaElement):
 
     async def get_reads_history(self, create_articles: bool = True, offset: int = 0,
                                 results_per_page: int = 20, n_collect: int = None,
-                                *args, **kwargs) -> List[Dict] or List['Article']:
+                                *args, **kwargs) -> Union[List[Dict], List['Article']]:
         """
         Get the reading history of the author.
 
@@ -222,7 +222,7 @@ class Author(DrukarniaElement):
 
         await self.request('put', f'/api/relationships/block/{await self.author_id}')
 
-    async def get_blocked(self, create_authors: bool = False) -> List[Dict] or Tuple['Author']:
+    async def get_blocked(self, create_authors: bool = False) -> Union[List[Dict], Tuple['Author']]:
         """
         Get the authors blocked by the current author.
 
@@ -298,7 +298,7 @@ class Author(DrukarniaElement):
                            **kwargs)
 
     @DrukarniaElement.requires_attributes(['username'], solution='provide username while initializing Author.')
-    async def collect_data(self, return_: bool = False) -> Dict or None:
+    async def collect_data(self, return_: bool = False) -> Union[Dict, None]:
         """
         Collect the author's data and update the object's attributes.
 

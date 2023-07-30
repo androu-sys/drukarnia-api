@@ -5,7 +5,7 @@ from aiohttp import ClientSession
 from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2articles, data2tags, data2authors
 
-from typing import TYPE_CHECKING, Tuple, Dict
+from typing import TYPE_CHECKING, Tuple, Dict, Union
 
 if TYPE_CHECKING:   # always False, used for type hints
     from drukarnia_api.objects.article import Article
@@ -31,7 +31,7 @@ class Tag(DrukarniaElement):
     @DrukarniaElement.requires_attributes(['slug'])
     async def get_articles(self, create_articles: bool = True,
                            offset: int = 0, results_per_page: int = 20, n_collect: int = None,
-                           **kwargs) -> Tuple['Article'] or Tuple[Dict]:
+                           **kwargs) -> Union[Tuple['Article'], Tuple[Dict]]:
         """
         Get articles associated with this tag.
 
@@ -57,7 +57,7 @@ class Tag(DrukarniaElement):
         return articles
 
     @DrukarniaElement.requires_attributes(['tag_id'])
-    async def related_tags(self, create_tags: bool = True) -> Tuple['Tag'] or Tuple[Dict]:
+    async def related_tags(self, create_tags: bool = True) -> Union[Tuple['Tag'], Tuple[Dict]]:
         """
         Get tags related to this tag.
 

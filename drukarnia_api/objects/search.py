@@ -1,7 +1,7 @@
 from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2authors, data2articles, data2tags
 
-from typing import TYPE_CHECKING, Tuple, Dict
+from typing import TYPE_CHECKING, Tuple, Dict, Union
 
 if TYPE_CHECKING:
     from drukarnia_api.objects.article import Article
@@ -17,7 +17,7 @@ class Search(DrukarniaElement):
                           offset: int = 0,
                           results_per_page: int = 20,
                           n_collect: int = None,
-                          *args, **kwargs) -> Tuple['Author'] or Tuple[Dict]:
+                          *args, **kwargs) -> Union[Tuple['Author'], Tuple[Dict]]:
         """
         Search for authors.
 
@@ -52,7 +52,7 @@ class Search(DrukarniaElement):
                             offset: int = 0,
                             results_per_page: int = 20,
                             n_collect: int = None,
-                            *args, **kwargs) -> Tuple['Article'] or Tuple[Dict]:
+                            *args, **kwargs) -> Union[Tuple['Article'], Tuple[Dict]]:
         """
         Search for articles.
 
@@ -82,7 +82,7 @@ class Search(DrukarniaElement):
                         create_tags: bool = True,
                         offset: int = 0,
                         results_per_page: int = 20,
-                        n_collect: int = None, **kwargs) -> Tuple['Tag'] or Tuple[Dict]:
+                        n_collect: int = None, **kwargs) -> Union[Tuple['Tag'], Tuple[Dict]]:
         """
         Search for tags.
 

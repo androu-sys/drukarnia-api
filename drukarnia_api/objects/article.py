@@ -5,7 +5,7 @@ from aiohttp import ClientSession
 from drukarnia_api.objects.base_object import DrukarniaElement
 from drukarnia_api.shortcuts import data2authors, data2articles, data2tags, data2comments
 
-from typing import TYPE_CHECKING, Tuple, Dict
+from typing import TYPE_CHECKING, Tuple, Dict, Union
 
 if TYPE_CHECKING:  # always False, used for type hints
     from drukarnia_api.objects.author import Author
@@ -89,7 +89,7 @@ class Article(DrukarniaElement):
                                data={"article": await self.article_id, "list": section_id})
 
     @DrukarniaElement.requires_attributes(['slug'])
-    async def collect_data(self, return_: bool = False) -> Dict or None:
+    async def collect_data(self, return_: bool = False) -> Union[Dict, None]:
         """
         Collects the article's data and updates the object's attributes.
 
@@ -329,7 +329,7 @@ class Article(DrukarniaElement):
         return await data2tags(tags, self.session)
 
     @property
-    async def main_article_tag(self) -> 'Tag' or None:
+    async def main_article_tag(self) -> Union['Tag', None]:
         """
         Retrieves the main tag of the article.
 
