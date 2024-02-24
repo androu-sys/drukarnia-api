@@ -5,7 +5,7 @@ async def get_author_article_titles():
 
     async with aiohttp.ClientSession() as session:
         response = await session.get(
-            url="https://drukarnia.com.ua/api/users/info?name=mantis&withRelationships=false&page=1"
+            url="https://drukarnia.com.ua/api/users/profile/mantis"
         )
         return print(await response.json())
 
