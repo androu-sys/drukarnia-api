@@ -6,7 +6,7 @@ authors = ["Psychotim <balduev.desco@mail.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 aiohttp = "3.8.4"
 attrdict = "2.0.1"
 fake-useragent = "1.1.3"
