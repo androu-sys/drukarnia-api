@@ -43,7 +43,8 @@ class Connection:
         self.session = ClientSession(
             base_url=self.base_url,
             cookies=cookies,
-            headers=self.headers
+            headers=self.headers,
+            trust_env=True,
         )
 
         self.custom_session = False
