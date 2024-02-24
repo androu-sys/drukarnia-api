@@ -3,7 +3,7 @@ from typing import Optional
 from attr import define, field, validators
 
 from drukarnia_api.network.utils import _to_datetime
-
+from drukarnia_api.dto import AuthorRelationship
 
 @define
 class Relationship:
@@ -42,8 +42,8 @@ class Author:
         validator=validators.instance_of(str),
         converter=_to_datetime,
     )
-    relationships: Relationship = field(
-        converter=lambda _dict: Relationship(**_dict),
+    relationships: AuthorRelationship = field(
+        converter=lambda _dict: AuthorRelationship(**_dict),
     )
     articles: list = field(
         validator=validators.instance_of(list),
