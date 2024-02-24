@@ -130,3 +130,5 @@ fabric.properties
 
 
 /docs/
+
+./test.py
