@@ -9,6 +9,7 @@ ResultType = TypeVar("ResultType", bound=Any)
 
 
 class BaseMethod(ABC, Generic[ResultType]):
+    __slots__ = ()
 
     async def __call__(self, session: "DrukarniaSession", **kwargs: Any) -> ResultType:
         return await self._from_response(session, **kwargs)

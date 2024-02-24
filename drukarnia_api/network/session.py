@@ -29,6 +29,17 @@ class DrukarniaSession:
             **kwargs,
         )
 
+    async def get(
+        self,
+        url: str,
+        **kwargs,
+    ) -> Any:
+        return await self.__call__(
+            method="GET",
+            url=url,
+            **kwargs,
+        )
+
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
