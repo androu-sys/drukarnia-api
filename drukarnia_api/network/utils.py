@@ -51,7 +51,7 @@ async def _from_response(response: ClientResponse, output: str or List[str] or N
     return data
 
 
-async def bto_json(data: Any):
+async def to_json(data: Any):
     """
     Converts the provided data into a JSON string if it's a dictionary or a list.
 

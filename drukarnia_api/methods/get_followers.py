@@ -1,5 +1,5 @@
 from typing import Any, Generator
-from drukarnia_api.objects.author import Author
+from drukarnia_api.dto.author import Author
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 from attrs import define, field, validators
@@ -10,7 +10,7 @@ class GetFollowers(BaseMethod[Generator[Author, None, None]]):
     author: "Author"
 
     page: int = field(
-        default=0,
+        default=1,
         validator=(
             validators.instance_of(int),
             validators.ge(0)
@@ -26,12 +26,13 @@ class GetFollowers(BaseMethod[Generator[Author, None, None]]):
         *args: Any,
         **kwargs: Any
     ) -> Generator[Author, None, None]:
-        authors = await session.get(
-            self.url.format(author_id=self.author.author_id),
+        response = await session.get(
+            self.url.format(author_id=self.author.id),
             data={},
             params={
                 "page": self.page
             },
         )
 
+        authors = await response.json()
         return (Author(**author) for author in authors)

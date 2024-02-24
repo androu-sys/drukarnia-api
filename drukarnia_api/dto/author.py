@@ -1,7 +1,6 @@
 from typing import Optional
-
+from datetime import datetime
 from attr import define, field, validators
-
 from drukarnia_api.network.utils import _to_datetime
 
 
@@ -13,7 +12,7 @@ class Relationship:
 
 @define
 class Author:
-    _id: str = field(
+    id: str = field(
         validator=validators.instance_of(str),
     )
     name: str = field(
@@ -39,7 +38,7 @@ class Author:
         validator=validators.instance_of(list),
     )
     createdAt: str = field(
-        validator=validators.instance_of(str),
+        validator=validators.instance_of(datetime),
         converter=_to_datetime,
     )
     relationships: Relationship = field(
@@ -48,3 +47,27 @@ class Author:
     articles: list = field(
         validator=validators.instance_of(list),
     )
+
+
+async def get_author_article_titles():
+    from drukarnia_api.network.api import API
+    from drukarnia_api.methods import GetFollowers
+
+    api = API()
+    d = {'username': 'mantis', 'id': '64540062c149c83ef72eea62', 'name': 'Ляшенко Ізабелла', 'avatar': None,
+         'description': None, 'followingNum': 0, 'followersNum': 0, 'readNum': 0, 'authorTags': [],
+         'createdAt': '2023-05-04T18:58:42.868Z', 'relationships': {'isSubscribed': False, 'isBlocked': False},
+         'articles': []}
+
+    async with api:
+        gen = await api(GetFollowers(author=Author(**d)))
+
+        for authro in gen:
+            print(authro)
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(get_author_article_titles())
