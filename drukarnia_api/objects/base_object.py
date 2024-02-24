@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any, Callable, TypeVar, List, Awaitable
-from attrdict import AttrDict
 from drukarnia_api.network.connection import Connection
 
 
@@ -51,7 +50,7 @@ class DrukarniaElement(Connection):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.data = AttrDict({})
+        self.data = {}
 
     def _update_data(self, new_data: dict):
         """
