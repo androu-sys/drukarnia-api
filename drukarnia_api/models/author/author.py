@@ -2,7 +2,7 @@ from typing import Optional
 from attrs import frozen, field
 from drukarnia_api.models.tag.summary import TagSummaryModel
 from drukarnia_api.models.base import BaseModel
-from drukarnia_api.models.relationship import AuthorRelationshipModel
+from drukarnia_api.models.relationship import AuthorRelationshipsModel
 from drukarnia_api.models.socials import SocialsModel
 from drukarnia_api.models.article.article_card import ArticleCardModel
 from datetime import datetime
@@ -30,8 +30,8 @@ class AuthorModel(BaseModel):
     createdAt: datetime = field(
         converter=datetime.fromisoformat,
     )
-    relationships: list[AuthorRelationshipModel] = field(
-        converter=AuthorRelationshipModel.from_json
+    relationships: list[AuthorRelationshipsModel] = field(
+        converter=AuthorRelationshipsModel.from_json
     )
     socials: SocialsModel = field(
         converter=SocialsModel.from_json

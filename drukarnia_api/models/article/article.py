@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from attrs import frozen, field
-from drukarnia_api.models.relationship import AuthorRelationshipModel
+from drukarnia_api.models.relationship import AuthorRelationshipsModel
 from drukarnia_api.models.tag import TagModel
 from drukarnia_api.models.base import BaseModel
 from drukarnia_api.models.article.from_author import ArticleFromAuthorModel
@@ -46,8 +46,8 @@ class ArticleModel(BaseModel):
         converter=bool
     )
     isBookmarked: bool
-    relationships: AuthorRelationshipModel = field(
-        converter=AuthorRelationshipModel.from_json
+    relationships: AuthorRelationshipsModel = field(
+        converter=AuthorRelationshipsModel.from_json
     )
     comments: list[CommentModel] = field(
         converter=CommentModel.from_json,

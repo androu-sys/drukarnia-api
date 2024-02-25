@@ -3,6 +3,6 @@ from drukarnia_api.models.base import BaseModel
 
 
 @frozen
-class AuthorRelationshipModel(BaseModel):
+class AuthorRelationshipsModel(BaseModel):
     isSubscribed: bool
     isBlocked: bool
