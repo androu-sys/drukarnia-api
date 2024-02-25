@@ -1,19 +1,10 @@
 from typing import Optional
-from attr import define, field, validators, converters
-from drukarnia_api.dto.utils import _to_datetime
-from drukarnia_api.dto import AuthorRelationship
-from drukarnia_api.dto.tag_summary import TagSummary
+from attr import define, field, validators
+from drukarnia_api.dto.relationships import AuthorRelationship
+from drukarnia_api.dto.article.article_summary import ArticleSummary
+from drukarnia_api.dto.socials import Socials
+from drukarnia_api.dto.tag.tag_summary import TagSummary
 from datetime import datetime
-
-
-@define
-class Socials:
-    name: str = field(
-        validator=validators.instance_of(str),
-    )
-    url: str = field(
-        validator=validators.instance_of(str),
-    )
 
 
 @define
@@ -48,11 +39,12 @@ class Author:
     )
     createdAt: datetime = field(
         validator=validators.instance_of(datetime),
-        converter=_to_datetime,
+        converter=lambda x: datetime.fromisoformat(x) if isinstance(x, str) else x,
     )
     relationships: AuthorRelationship = field(
         converter=lambda _dict: AuthorRelationship(**_dict),
     )
-    articles: list = field(
-        validator=validators.instance_of(list),
+    articles: list[ArticleSummary] = field(
+        validator=validators.instance_of(list[ArticleSummary]),
+        converter=lambda data: [ArticleSummary(**article) for article in articles]
     )

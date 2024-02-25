@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 import datetime
 from attr import validators, field, define
 
@@ -23,8 +23,11 @@ class ArticleSummary:
     mainTag: str = field(
         validator=validators.instance_of(str),
     )
-    tags: List[str] = field(
-        validator=validators.deep_iterable(member_validator=validators.instance_of(str), iterable_validator=validators.instance_of(list)),
+    tags: list[str] = field(
+        validator=validators.deep_iterable(
+            member_validator=validators.instance_of(str),
+            iterable_validator=validators.instance_of(list),
+        ),
     )
     sensitive: bool = field(
         validator=validators.instance_of(bool),
