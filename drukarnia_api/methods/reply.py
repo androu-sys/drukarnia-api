@@ -23,11 +23,11 @@ class ReplyToComment(BaseMethod[str]):
         **kwargs: Any,
     ) -> str:
         response = await session.post(
-            url=self.url.format(self.article_id, self.comment_text),
+            url=self.url.format(self.article_id, self.reply_to_comment_id),
             data={
                 "comment": self.comment_text,
                 "replyToComment": self.reply_to_comment_id,
-                "rootComment": self.reply_to_comment_id,  # not sure
+                "rootComment": self.reply_to_comment_id,
                 "rootCommentOwner": self.owner_id,
                 "replyToUser": self.owner_id,
             },
