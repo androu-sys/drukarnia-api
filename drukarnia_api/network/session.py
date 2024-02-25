@@ -1,6 +1,8 @@
-from typing import Self, Optional, Type, Any
-from aiohttp import ClientSession
+from typing import Any, Optional, Self, Type
 
+from aiohttp import ClientSession
+from aiohttp.cookiejar import SimpleCookie
+from aiohttp import ClientResponse
 
 class DrukarniaSession:
     __slots__ = (
@@ -8,7 +10,7 @@ class DrukarniaSession:
     )
 
     def __init__(self) -> None:
-        self._session = ClientSession(
+        self._session: ClientSession = ClientSession(
             base_url="https://drukarnia.com.ua",
             trust_env=True,
         )
@@ -22,7 +24,7 @@ class DrukarniaSession:
         method: str,
         url: str,
         **kwargs,
-    ) -> Any:
+    ) -> ClientResponse:
         return await self._session.request(
             method=method,
             url=url,
@@ -33,12 +35,24 @@ class DrukarniaSession:
         self,
         url: str,
         **kwargs,
-    ) -> Any:
+    ) -> ClientResponse:
         return await self.__call__(
             method="GET",
             url=url,
             **kwargs,
         )
+
+    async def post(
+        self,
+        url: str,
+        **kwargs,
+    ) -> ClientResponse:
+        return await self.__call__(
+            method="POST",
+            url=url,
+            **kwargs,
+        )
+
 
     async def __aexit__(
         self,
@@ -47,3 +61,7 @@ class DrukarniaSession:
         traceback: Any,
     ) -> None:
         await self._session.__aexit__(exc_type, exc_value, traceback)
+
+
+    async def set_cookie(self, cookies: SimpleCookie) -> None:
+        self._session.cookie_jar.update_cookies(cookies=cookies)
