@@ -1,9 +1,8 @@
 import attrs
 from typing import Any, Callable
-from drukarnia_api.dto.base import BaseDTO
 
 
-def starts_with(prefix: str) -> Callable[[Any, attrs.Attribute, str], None]:
+def starts_with(prefix: Any) -> Callable[[Any, attrs.Attribute, Any], None]:
     """
     Creates a custom validator function that checks if a string starts with the given prefix.
 
@@ -14,7 +13,7 @@ def starts_with(prefix: str) -> Callable[[Any, attrs.Attribute, str], None]:
         Callable[[object, attr.Attribute, str], None]: A validator function to be used with attrs.
     """
 
-    def validate(instance: Any, attribute: attrs.Attribute, value: str) -> None:
+    def validate(instance: Any, attribute: attrs.Attribute, value: Any) -> None:
         """
         Validates whether the given value starts with the specified prefix.
 
@@ -26,14 +25,11 @@ def starts_with(prefix: str) -> Callable[[Any, attrs.Attribute, str], None]:
         Raises:
             ValueError: If the value does not start with the specified prefix.
         """
+        if not isinstance(value, str):
+            raise ValueError("value should be string")
+        
         if not value.startswith(prefix):
             raise ValueError(f"{attribute.name} must start with '{prefix}'")
 
-        if not isinstance(value, str):
-            raise ValueError("value should be string")
 
     return validate
-
-
-def to_dict(model: BaseDTO) -> dict:
-    ...
