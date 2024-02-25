@@ -1,15 +1,16 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Type, TypeVar, overload
+from attrs import define, asdict
 
 DTO = TypeVar("DTO", bound="BaseDTO")
 
 
+@define
 class BaseDTO(ABC):
     __slots__ = ()
 
-    @abstractmethod
     def to_json(self) -> dict:
-        raise NotImplementedError
+        return asdict(self)     # type: ignore
 
     @classmethod
     @overload
