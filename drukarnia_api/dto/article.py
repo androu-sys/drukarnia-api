@@ -1,12 +1,13 @@
 from datetime import datetime
 from typing import Optional
 from attr import define, field, validators
-from drukarnia_api.dto import AuthorRelationship, Tags
-from drukarnia_api.dto.utils import _to_datetime
+from drukarnia_api.dto.relationship import AuthorRelationship
+from drukarnia_api.dto.tag import Tag
+from drukarnia_api.dto.base import BaseDTO
 
 
 @define
-class Article:
+class Article(BaseDTO):
     _id: str = field(
         validator=validators.instance_of(str),
     )
@@ -25,8 +26,8 @@ class Article:
     mainTag: str = field(
         validator=validators.instance_of(str),
     )
-    tags: Tags = field(
-        converter=lambda _dict: Tags(**_dict),
+    tags: list[Tag] = field(
+        converter=Tag.from_json,
     )
     ads: bool = field(
         validator=validators.instance_of(bool),
@@ -69,7 +70,7 @@ class Article:
     )
     createdAt: datetime = field(
         validator=validators.instance_of(datetime),
-        converter=_to_datetime,
+        converter=lambda x: datetime.fromisoformat(x),
     )
     thumbPicture: Optional[str] = field(
         validator=validators.instance_of(str | type(None)),

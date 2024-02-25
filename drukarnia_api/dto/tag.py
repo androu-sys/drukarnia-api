@@ -1,13 +1,12 @@
-from typing import Optional, Union
+from typing import Optional
 
 from attr import define, field, validators
-
-from drukarnia_api.dto.utils import _to_datetime
+from drukarnia_api.dto.base import BaseDTO
 from datetime import datetime
 
 
 @define
-class Tag:
+class Tag(BaseDTO):
     _id: str = field(
         validator=validators.instance_of(str),
     )
@@ -22,7 +21,7 @@ class Tag:
     )
     createdAt: datetime = field(
         validator=validators.instance_of(datetime),
-        converter=_to_datetime,
+        converter=lambda x: datetime.fromisoformat(x),
     )
     default: bool = field(
         validator=validators.instance_of(bool),

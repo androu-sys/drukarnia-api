@@ -1,12 +1,13 @@
 from typing import Any
 
 from attr import define, field, validators
+from drukarnia_api.models import AuthorModel
 from drukarnia_api.methods import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
 @define(frozen=True)
-class Login(BaseMethod[None]):
+class Login(BaseMethod[AuthorModel]):
     email: str = field(validator=validators.instance_of(str))
     password: str = field(validator=validators.instance_of(str))
 
@@ -19,9 +20,12 @@ class Login(BaseMethod[None]):
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> None:
+    ) -> AuthorModel:
         # Cookies are automatically updated by aiohttp
-        await session.post(
+        response = await session.post(
             data={"password": self.password, "email": self.email},
             **kwargs,
         )
+
+        author_data = await response.json()
+        return AuthorModel(**author_data["user"])

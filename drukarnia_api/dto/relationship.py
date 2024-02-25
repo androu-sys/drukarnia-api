@@ -1,8 +1,9 @@
-from attr import define, field, validators
+from attrs import define, field, validators
+from drukarnia_api.dto.base import BaseDTO
 
 
 @define
-class AuthorRelationship:
+class AuthorRelationship(BaseDTO):
     isSubscribed: bool = field(
         validator=validators.instance_of(bool),
     )
