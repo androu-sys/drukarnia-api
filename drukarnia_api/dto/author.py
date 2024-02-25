@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import Optional, Union
 
 from attr import define, field, validators
 
 from drukarnia_api.network.utils import _to_datetime
 from drukarnia_api.dto import AuthorRelationship
-
+from datetime import datetime
 
 @define
 class Author:
@@ -33,8 +33,8 @@ class Author:
     authorTags: list = field(
         validator=validators.instance_of(list),
     )
-    createdAt: str = field(
-        validator=validators.instance_of(str),
+    createdAt: Union[str, datetime]  = field(
+        validator=validators.instance_of(datetime),
         converter=_to_datetime,
     )
     relationships: AuthorRelationship = field(
