@@ -9,7 +9,7 @@ from drukarnia_api.network.session import DrukarniaSession
 
 
 @define(frozen=True)
-class GetReadsHistoryRequest(MixinWithPage, BaseMethod[Generator[ArticleSummaryModel, None, None]]):
+class GetReadsHistory(MixinWithPage, BaseMethod[Generator[ArticleSummaryModel, None, None]]):
     url: str = field(
         init=False,
         default="/api/stats/reads/history",

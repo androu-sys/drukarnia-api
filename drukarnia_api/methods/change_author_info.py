@@ -16,7 +16,7 @@ class ChangUserInfoConfig:
 
 
 @frozen(kw_only=True)
-class ChangeUserInfo(BaseMethod[None]):
+class ChangeAuthorInfo(BaseMethod[None]):
     config: "ChangUserInfoConfig"
 
     url: str = field(

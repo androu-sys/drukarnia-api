@@ -30,7 +30,7 @@ class ChangeEmail(BaseMethod[None]):
         )
 
         data = await response.read()
-        success = data.decode('utf-8') == "true"
+        success = data.decode('utf-8').lower() == "true"
 
         if success is False:
             raise ValueError("Email update was not successful. We have no idea why.")
