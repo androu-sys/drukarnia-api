@@ -5,7 +5,7 @@ from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen(kw_only=True)
+@frozen
 class Block(BaseMethod[None]):
     author_id: str
     url: str = field(

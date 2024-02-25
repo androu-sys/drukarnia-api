@@ -5,7 +5,7 @@ from drukarnia_api.network.session import DrukarniaSession
 from drukarnia_api.dto import UserInfoUpdate, to_dict
 
 
-@frozen(kw_only=True)
+@frozen
 class ChangeAuthorInfo(BaseMethod[None]):
     config: "UserInfoUpdate"
 

@@ -6,7 +6,7 @@ from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen(kw_only=True)
+@frozen
 class CreateBookmark(BaseMethod[str]):
     name: str
     url: str = field(
