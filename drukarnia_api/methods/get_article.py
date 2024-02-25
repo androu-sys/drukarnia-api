@@ -11,7 +11,6 @@ from drukarnia_api.network.session import DrukarniaSession
 class GetArticle(BaseMethod[ArticleModel]):
     article_id: str
     slug: str
-    return_: bool = field(validator=validators.instance_of(bool))
     url: str = field(init=False, default="/api/articles/{slug}")
 
     async def _request(

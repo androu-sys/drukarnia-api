@@ -1,16 +1,16 @@
 from typing import Any
 
-from attrs import frozen, field
+from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class Block(BaseMethod[None]):
-    author_id: str
+class SubscribeTag(BaseMethod[None]):
+    tag_id: str = field(validator=validators.instance_of(str))
     url: str = field(
         init=False,
-        default="/api/relationships/block/{author_id}",
+        default="/api/preferences/tags/{tag_id}",
     )
 
     async def _request(
@@ -19,8 +19,8 @@ class Block(BaseMethod[None]):
         **kwargs: Any,
     ) -> None:
         await session(
-            "PATCH",
-            self.url.format(author_id=self.author_id),
+            "PUT",
+            self.url.format(tag_id=self.tag_id),
             data={},
             **kwargs,
         )
