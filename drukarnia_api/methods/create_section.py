@@ -1,4 +1,4 @@
-from typing import Any, Generator
+from typing import Any
 
 from attrs import frozen, field
 
@@ -8,8 +8,8 @@ from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen(kw_only=True)
-class GetSections(BaseMethod[Generator[SectionModel, None, None]]):
-    preview: bool = True
+class CreateSection(BaseMethod[SectionModel]):
+    name: str
     url: str = field(
         init=False,
         default="/api/articles/bookmarks/lists",
@@ -19,13 +19,15 @@ class GetSections(BaseMethod[Generator[SectionModel, None, None]]):
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> Generator[SectionModel, None, None]:
+    ) -> SectionModel:
         response = await session.get(
             self.url,
             data={},
-            params={"preview": self.preview},
+            params={"name": self.name},
             **kwargs,
         )
 
-        articles = await response.json()
-        return (SectionModel.from_json(article) for article in articles)
+        bookmark_id = await response.read()
+        return SectionModel(
+            bookmark_id=bookmark_id.decode('utf-8'),
+        )

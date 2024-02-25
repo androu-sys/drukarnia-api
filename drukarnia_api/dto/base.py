@@ -1,10 +1,15 @@
 from typing import TypeVar, Type, overload, Generator
-
+from abc import ABC, abstractmethod
 DTO = TypeVar("DTO", bound="BaseDTO")
 
 
-class BaseDTO:
+class BaseDTO(ABC):
     __slots__ = ()
+
+    @abstractmethod
+    def to_json(self) -> dict:
+        raise NotImplementedError
+
 
     @classmethod
     @overload

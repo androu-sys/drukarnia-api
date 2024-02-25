@@ -21,6 +21,7 @@ class GetNotifications(MixinWithPage, BaseMethod[Generator[NotificationModel, No
         **kwargs: Any,
     ) -> Generator[NotificationModel, None, None]:
         response = await session.get(
+            self.url,
             data={},
             params={"page": self.page},
             **kwargs,

@@ -13,7 +13,7 @@ class Login(BaseMethod[AuthorModel]):
 
     url: str = field(
         init=False,
-        default="'/api/users/login",
+        default="/api/users/login",
     )
 
     async def _request(

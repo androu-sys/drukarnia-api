@@ -21,6 +21,7 @@ class GetReadsHistoryRequest(MixinWithPage, BaseMethod[Generator[ArticleSummaryM
         **kwargs: Any,
     ) -> Generator[ArticleSummaryModel, None, None]:
         response = await session.get(
+            self.url,
             data={},
             params={"page": self.page},
             **kwargs,
