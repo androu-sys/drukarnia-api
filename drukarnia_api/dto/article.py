@@ -1,10 +1,8 @@
 from datetime import datetime
 from typing import Optional
-
 from attr import define, field, validators
-
 from drukarnia_api.dto import AuthorRelationship, Tags
-from drukarnia_api.network.utils import _to_datetime
+from drukarnia_api.dto.utils import _to_datetime
 
 
 @define

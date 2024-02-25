@@ -1,10 +1,20 @@
-from typing import Optional, Union
-
-from attr import define, field, validators
-
-from drukarnia_api.network.utils import _to_datetime
+from typing import Optional
+from attr import define, field, validators, converters
+from drukarnia_api.dto.utils import _to_datetime
 from drukarnia_api.dto import AuthorRelationship
+from drukarnia_api.dto.tag_summary import TagSummary
 from datetime import datetime
+
+
+@define
+class Socials:
+    name: str = field(
+        validator=validators.instance_of(str),
+    )
+    url: str = field(
+        validator=validators.instance_of(str),
+    )
+
 
 @define
 class Author:
@@ -30,10 +40,13 @@ class Author:
     readNum: int = field(
         validator=(validators.instance_of(int), validators.ge(val=0)),
     )
-    authorTags: list = field(
-        validator=validators.instance_of(list),
+    authorTags: list[TagSummary] = field(
+        converter=lambda data: [TagSummary(**tag) for tag in data]
     )
-    createdAt: Union[str, datetime]  = field(
+    socials: Socials = field(
+        converter=lambda data: Socials(**data)
+    )
+    createdAt: datetime = field(
         validator=validators.instance_of(datetime),
         converter=_to_datetime,
     )
