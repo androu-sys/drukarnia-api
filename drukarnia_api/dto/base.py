@@ -1,5 +1,6 @@
-from typing import TypeVar, Type, overload, Generator
 from abc import ABC, abstractmethod
+from typing import Type, TypeVar, overload
+
 DTO = TypeVar("DTO", bound="BaseDTO")
 
 
@@ -9,7 +10,6 @@ class BaseDTO(ABC):
     @abstractmethod
     def to_json(self) -> dict:
         raise NotImplementedError
-
 
     @classmethod
     @overload
@@ -29,4 +29,6 @@ class BaseDTO(ABC):
         elif isinstance(data, list):
             return [cls(**record) for record in data]
 
-        raise ValueError(f"`from_json` got unexpected data type: {type(data)}. Expected `dict` or `list`")
+        raise ValueError(
+            f"`from_json` got unexpected data type: {type(data)}. Expected `dict` or `list`"
+        )

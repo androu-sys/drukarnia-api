@@ -1,6 +1,6 @@
 from typing import Any, Generator
 
-from attrs import define, field
+from attrs import frozen, field
 
 from drukarnia_api.models import ArticleSummaryModel
 from drukarnia_api.methods.base import BaseMethod
@@ -8,7 +8,7 @@ from drukarnia_api.methods.mixins import MixinWithPage
 from drukarnia_api.network.session import DrukarniaSession
 
 
-@define(frozen=True)
+@frozen(kw_only=True)
 class GetReadsHistory(MixinWithPage, BaseMethod[Generator[ArticleSummaryModel, None, None]]):
     url: str = field(
         init=False,
