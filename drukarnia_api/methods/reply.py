@@ -4,11 +4,11 @@ from attr import field, frozen
 
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.methods.mixins import MixinWithArticleID
 
 
 @frozen
-class ReplyToComment(BaseMethod[str]):
-    article_id: str
+class ReplyToComment(MixinWithArticleID, BaseMethod[str]):
     reply_to_comment_id: str
     comment_text: str
     owner_id: Optional[str]

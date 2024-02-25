@@ -3,13 +3,12 @@ from typing import Any
 from attrs import field, frozen
 
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.mixins import MixinWithArticleID, MixinWithCommentID
 from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class DeleteComment(BaseMethod[None]):
-    article_id: str
-    comment_id: str
+class DeleteComment(MixinWithArticleID, MixinWithCommentID, BaseMethod[None]):
     url: str = field(
         init=False,
         default="/api/articles/{article_id}/comments/{comment_id}",

@@ -1,26 +1,22 @@
 from typing import Any
 
-from attrs import frozen, field
+from attr import frozen
+
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.like_comment import LikeComment
 from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class Block(BaseMethod[None]):
-    author_id: str
-    url: str = field(
-        init=False,
-        default="/api/relationships/block/{author_id}",
-    )
-
+class RemoveLikes(LikeComment, BaseMethod[None]):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
     ) -> None:
         await session(
-            "PATCH",
-            self.url.format(author_id=self.author_id),
+            "DELETE",
+            url=self.url.format(self.article_id, self.comment_id),
             data={},
             **kwargs,
         )

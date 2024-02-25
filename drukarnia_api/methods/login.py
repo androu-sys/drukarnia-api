@@ -6,7 +6,7 @@ from drukarnia_api.methods import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
-@define(frozen=True)
+@define
 class Login(BaseMethod[AuthorModel]):
     email: str = field(validator=validators.instance_of(str))
     password: str = field(validator=validators.instance_of(str))

@@ -4,7 +4,7 @@ from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen(kw_only=True)
+@frozen
 class ChangeEmail(BaseMethod[None]):
     current_password: str
     new_email: str
