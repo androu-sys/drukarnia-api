@@ -5,7 +5,7 @@ from drukarnia_api.network.session import DrukarniaSession
 from attrs import define, field, validators
 
 
-@define
+@define(frozen=True)
 class GetFollowers(BaseMethod[Generator[Author, None, None]]):
     author: "Author"
 
