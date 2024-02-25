@@ -5,7 +5,7 @@ from drukarnia_api.models.relationship import AuthorRelationshipsModel
 
 
 @frozen
-class SearchResultedAuthor(BaseModel):
+class SearchResultedAuthorModel(BaseModel):
     _id: str
     name: str
     avatar: Optional[str]
