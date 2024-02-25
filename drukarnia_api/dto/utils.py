@@ -28,6 +28,9 @@ def starts_with(prefix: str) -> Callable[[attrs.Attribute, str], None]:
         if not value.startswith(prefix):
             raise ValueError(f"{attribute.name} must start with '{prefix}'")
 
+        if not isinstance(value, str):
+            raise ValueError("value should be string")
+
     return validate
 
 

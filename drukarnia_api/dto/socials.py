@@ -7,10 +7,9 @@ from attrs import frozen, field, validators
 @frozen
 class SocialsDTO(BaseDTO):
     telegram: Optional[str] = field(
-        validator=validators.optional((
-            validators.instance_of(str),
+        validator=validators.optional(
             starts_with("https://t.me/")
-        ))
+        )
     )
     instagram: Optional[str] = field(
         validator=validators.optional((

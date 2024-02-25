@@ -1,16 +1,15 @@
 from typing import Any
 
-from attr import field, frozen, validators
+from attr import field, frozen
 
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.network.session import DrukarniaSession
 from drukarnia_api.methods.bookmark import Bookmark
+from drukarnia_api.network.session import DrukarniaSession
+
 
 @frozen
 class UnBookmark(Bookmark, BaseMethod[None]):
-    url: str = field(
-        init=False, default="/api/articles/{article_id}/bookmarks"
-    )
+    url: str = field(init=False, default="/api/articles/{article_id}/bookmarks")
 
     async def _request(
         self,
@@ -23,4 +22,3 @@ class UnBookmark(Bookmark, BaseMethod[None]):
             data={},
             **kwargs,
         )
-    

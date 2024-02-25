@@ -7,7 +7,7 @@ from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen(kw_only=True)
-class GetAuthor(BaseMethod[AuthorModel]):
+class GetAuthor(MixinWithPage, BaseMethod[AuthorModel]):
     username: str = field(validator=validators.instance_of(str))
     url: str = field(init=False, default="/api/users/profile/{username}")
 
