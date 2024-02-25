@@ -1,15 +1,14 @@
-from typing import Any, Generator
+from typing import Any
 
 from attrs import frozen, field
 
-from drukarnia_api.models import SectionModel
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen(kw_only=True)
-class GetSections(BaseMethod[Generator[SectionModel, None, None]]):
-    preview: bool = True
+class CreateBookmark(BaseMethod[str]):
+    name: str
     url: str = field(
         init=False,
         default="/api/articles/bookmarks/lists",
@@ -19,13 +18,13 @@ class GetSections(BaseMethod[Generator[SectionModel, None, None]]):
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> Generator[SectionModel, None, None]:
+    ) -> str:
         response = await session.get(
             self.url,
             data={},
-            params={"preview": self.preview},
+            params={"name": self.name},
             **kwargs,
         )
 
-        articles = await response.json()
-        return (SectionModel.from_json(article) for article in articles)
+        bookmark_id = await response.read()
+        return bookmark_id.decode('utf-8')

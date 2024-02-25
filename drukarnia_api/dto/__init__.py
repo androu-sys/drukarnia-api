@@ -1,11 +1,3 @@
-from drukarnia_api.dto.author import Author
-
-__all__ = (
-    "Article",
-    "Author",
-    "Tags",
-    "AuthorRelationship",
-    "Owner",
-    "AuthorThumbnail",
-    "ArticleThumbnail",
-)
+from drukarnia_api.dto.base import BaseDTO
+from drukarnia_api.dto.socials import SocialsDTO
+from drukarnia_api.dto.utils import to_dict

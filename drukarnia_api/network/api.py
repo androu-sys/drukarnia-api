@@ -8,8 +8,8 @@ class API:
         "_session",
     )
 
-    def __init__(self):
-        self._session = DrukarniaSession()
+    def __init__(self, session: DrukarniaSession = None):
+        self._session = session if session else DrukarniaSession()
 
     async def __call__(
         self,
