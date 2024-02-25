@@ -1,20 +1,15 @@
 from typing import Any, Generator
 
-from attr import define, field
+from attrs import define, field
 
-from drukarnia_api.dto import Article
-from drukarnia_api.methods.base import BaseMethod, ResponseBase
+from drukarnia_api.models import ArticleSummaryModel
+from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithPage
 from drukarnia_api.network.session import DrukarniaSession
 
 
-@define
-class GetReadsHistoryResponse(ResponseBase):
-    reads: Generator[Article, None, None]
-
-
 @define(frozen=True)
-class GetReadsHistoryRequest(MixinWithPage, BaseMethod[GetReadsHistoryResponse]):
+class GetReadsHistoryRequest(MixinWithPage, BaseMethod[Generator[ArticleSummaryModel, None, None]]):
     url: str = field(
         init=False,
         default="/api/stats/reads/history",
@@ -23,18 +18,13 @@ class GetReadsHistoryRequest(MixinWithPage, BaseMethod[GetReadsHistoryResponse])
     async def _request(
         self,
         session: "DrukarniaSession",
-        *args: Any,
         **kwargs: Any,
-    ) -> GetReadsHistoryResponse:
+    ) -> Generator[ArticleSummaryModel, None, None]:
         response = await session.get(
             data={},
             params={"page": self.page},
-            *args,
             **kwargs,
         )
 
-        authors = await response.json()
-        return GetReadsHistoryResponse(
-            reads = Article(**author) for author in authors
-        )  # Change the model from Author to Notification
-    
+        articles = await response.json()
+        return (ArticleSummaryModel(**article) for article in articles)

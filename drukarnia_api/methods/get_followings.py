@@ -1,8 +1,8 @@
 from drukarnia_api.methods.get_followers import GetFollowers
-from attrs import define, field
+from attrs import frozen, field
 
 
-@define
+@frozen
 class GetFollowings(GetFollowers):  # type: ignore[misc]
     url: str = field(
         init=False,

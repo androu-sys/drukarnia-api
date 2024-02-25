@@ -1,8 +1,10 @@
 from typing import Any, Optional, Self, Type
 
 from aiohttp import ClientSession
-from aiohttp.cookiejar import SimpleCookie
 from aiohttp import ClientResponse
+
+from drukarnia_api.network.utils import _check_response
+
 
 class DrukarniaSession:
     __slots__ = (
@@ -25,11 +27,15 @@ class DrukarniaSession:
         url: str,
         **kwargs,
     ) -> ClientResponse:
-        return await self._session.request(
+        response = await self._session.request(
             method=method,
             url=url,
             **kwargs,
         )
+
+        await _check_response(response)
+
+        return response
 
     async def get(
         self,
@@ -53,7 +59,6 @@ class DrukarniaSession:
             **kwargs,
         )
 
-
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
@@ -61,7 +66,3 @@ class DrukarniaSession:
         traceback: Any,
     ) -> None:
         await self._session.__aexit__(exc_type, exc_value, traceback)
-
-
-    async def set_cookie(self, cookies: SimpleCookie) -> None:
-        self._session.cookie_jar.update_cookies(cookies=cookies)

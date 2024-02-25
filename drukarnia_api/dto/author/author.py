@@ -1,36 +1,20 @@
 from typing import Optional
 from attr import define, field, validators
-from drukarnia_api.dto.relationships import AuthorRelationship
 from drukarnia_api.dto.article.article_summary import ArticleSummary
+from drukarnia_api.dto.base import BaseDTO
+from drukarnia_api.dto.utils import _str_field, _optional_str_field
 from drukarnia_api.dto.socials import Socials
 from drukarnia_api.dto.tag.tag_summary import TagSummary
 from datetime import datetime
 
 
 @define
-class Author:
-    _id: str = field(
-        validator=validators.instance_of(str),
-    )
-    name: str = field(
-        validator=validators.instance_of(str),
-    )
-    avatar: Optional[str] = field(
-        validator=validators.instance_of(str | type(None)),
-    )
-    username: str = field(validator=validators.instance_of(str))
-    description: Optional[str] = field(
-        validator=validators.instance_of(str | type(None))
-    )
-    followingNum: int = field(
-        validator=(validators.instance_of(int), validators.ge(val=0))
-    )
-    followersNum: int = field(
-        validator=validators.instance_of(int),
-    )
-    readNum: int = field(
-        validator=(validators.instance_of(int), validators.ge(val=0)),
-    )
+class Author(BaseDTO):
+    _id: str = _str_field()
+    name: str = _str_field()
+    username: str = _str_field()
+    avatar: Optional[str] = _optional_str_field()
+    description: Optional[str] = _optional_str_field()
     authorTags: list[TagSummary] = field(
         converter=lambda data: [TagSummary(**tag) for tag in data]
     )

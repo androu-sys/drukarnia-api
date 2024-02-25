@@ -1,18 +1,26 @@
-from typing import TypeVar, Any
-from datetime import datetime
+from typing import TypeVar, Any, Callable
+from attrs import field, validators
+from functools import wraps
 
 
-C = TypeVar("C", bound=Any)
+def _field_factory(**kwargs: Any) -> Callable[[], field]:
+    @wraps(field)
+    def factory() -> Any:
+        return field(**kwargs)
+
+    return factory
 
 
-def _to_datetime(date: str) -> datetime:
-    """
-    Convert a string representation of a date to a datetime object.
+_str_field: field = _field_factory(
+    validator=validators.instance_of(str)
+)
+_int_gtz_freezed_field: field = _field_factory(
+    validator=validators.instance_of(str)
+)
 
-    Parameters:
-        date (str): The date string in ISO format.
+field(f)
 
-    Returns:
-        datetime: The converted datetime object.
-    """
-    return datetime.fromisoformat(date[:-1])
+_optional_str_field: field = _field_factory(
+    validator=validators.optional(validators.instance_of(str))
+)
+
