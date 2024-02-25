@@ -1,10 +1,10 @@
 from typing import Optional
 from drukarnia_api.dto.base import BaseDTO
 from drukarnia_api.dto.utils import starts_with
-from attrs import frozen, field, validators
+from attrs import define, field, validators
 
 
-@frozen
+@define
 class SocialsDTO(BaseDTO):
     telegram: Optional[str] = field(
         validator=validators.optional(
