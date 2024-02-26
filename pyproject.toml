@@ -10,6 +10,16 @@ python = "^3.11"
 aiohttp = "3.8.4"
 attrdict = "2.0.1"
 fake-useragent = "1.1.3"
+mypy = "^1.8.0"
+ruff = "^0.2.2"
+
+
+[tool.ruff]
+fix = true
+unsafe-fixes = true
+line-length = 120  # if active, remove E501 from ignore
+lint.select = ["ALL"]
+lint.ignore = ["D1", "D203", "D213", "FA102", "ANN101", "UP007", "FA100", "COM812", "ISC001", "ANN401"]
 
 
 [build-system]
