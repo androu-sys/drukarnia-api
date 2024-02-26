@@ -132,3 +132,4 @@ fabric.properties
 /docs/
 
 ./test.py
+./poetry.lock

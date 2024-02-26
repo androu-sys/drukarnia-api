@@ -4,8 +4,7 @@ from attrs import frozen, field
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
 from drukarnia_api.models.tag import TagModel
 from drukarnia_api.models.base import BaseModel
-from drukarnia_api.models.article.from_author import ArticleFromAuthorModel
-from drukarnia_api.models.article.extended_article_card import ExtendedCardArticleModel
+from drukarnia_api.models.author import ArticleFromAuthorModel
 from drukarnia_api.models.author.article_author import ArticleAuthorModel
 from drukarnia_api.models.comment import CommentModel
 
@@ -52,7 +51,7 @@ class ArticleModel(BaseModel):
     comments: list[CommentModel] = field(
         converter=CommentModel.from_json,
     )
-    recommendedArticles: list[ExtendedCardArticleModel] = field(
-        converter=ExtendedCardArticleModel.from_json
+    recommendedArticles: list["ArticleModel"] = field(
+        converter=ArticleModel.from_json
     )
 
