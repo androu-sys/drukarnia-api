@@ -1,35 +1,46 @@
-from drukarnia_api.models.base import BaseModel
-from attrs import frozen, field
-from drukarnia_api.models.article.bookmark_preview import BookmarkArticlePreviewModel
+from typing import Optional, Union, TYPE_CHECKING
 from datetime import datetime
+from attrs import frozen, field, converters
+from drukarnia_api.models.tools import BaseModel, ModelField, ModelRegistry
+
+if TYPE_CHECKING:
+    from drukarnia_api.models.article import ArticleModel
 
 
-def _extract_articles(data: list | dict) -> list[dict] | dict:
+def _extract_article_dicts(data: list | dict) -> list[dict] | dict:
     if isinstance(data, dict):
         return data["article"]
 
     elif isinstance(data, list):
-        return [_extract_articles(record) for record in data]
+        return [_extract_article_dicts(record) for record in data]
 
     raise TypeError(f"Expected list or dict got: `{type(data)}`")
 
 
 @frozen
-class BookmarkModel(BaseModel):
-    _id: str
-    name: str
-    articlesNum: int
-    owner: str
-    createdAt: datetime = field(
-        converter=datetime.fromisoformat,
+class _BookmarkPreDescriptorModel(BaseModel):
+    id_: str
+    name: Optional[str] = None
+    articlesNum: Optional[int] = None
+    owner: Optional[str] = None
+    createdAt: Optional[datetime] = field(
+        converter=converters.optional(datetime.fromisoformat),
+        default=None,
     )
-    updatedAt: datetime = field(
-        converter=datetime.fromisoformat,
+    updatedAt: Optional[datetime] = field(
+        converter=converters.optional(datetime.fromisoformat),
+        default=None,
     )
-    __v: int
-    isLiked: bool = field(
-        converter=bool
+    v__: Optional[int] = None
+    isLiked: Optional[bool] = field(
+        converter=converters.optional(bool),
+        default=None,
     )
-    articles: list[BookmarkArticlePreviewModel] = field(
-        converter=lambda data: BookmarkArticlePreviewModel.from_json(_extract_articles(data))
+    articles: Optional[list[Union["ArticleModel", dict]]] = field(
+        converter=converters.optional(_extract_article_dicts),
+        default=None,
     )
+
+
+class BookmarkModel(_BookmarkPreDescriptorModel, metaclass=ModelRegistry):
+    articles: list["ArticleModel"] = ModelField("ArticleModel")

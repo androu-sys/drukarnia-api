@@ -1,41 +1,52 @@
-from typing import Optional
-from attrs import frozen, field
-from drukarnia_api.models.tag.summary import TagSummaryModel
-from drukarnia_api.models.base import BaseModel
+from typing import Optional, TYPE_CHECKING, Union
+from attrs import frozen, field, converters
+from drukarnia_api.models.tools import ModelRegistry, ModelField, BaseModel
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
 from drukarnia_api.models.socials import SocialsModel
-from drukarnia_api.models.article.article_card import ArticleCardModel
 from datetime import datetime
+
+if TYPE_CHECKING:
+    from drukarnia_api.models.tag import TagModel
+    from drukarnia_api.models.article import ArticleModel
 
 
 @frozen
-class AuthorModel(BaseModel):
-    _id: str
-    name: str
-    avatar: Optional[str]
-    username: str
-    descriptionShort: Optional[str]
-    description: Optional[str]
-    followingNum: int
-    followersNum: int
-    facebookId: Optional[str]
-    googleId: Optional[str]
-    email: Optional[str]
-    readNum: int
-    authorTags: list[TagSummaryModel] = field(
-        converter=TagSummaryModel.from_json
+class _AuthorPreDescriptorModel(BaseModel):
+    id_: str
+    name: Optional[str] = None
+    avatar: Optional[str] = None
+    username: Optional[str] = None
+    descriptionShort: Optional[str] = None
+    description: Optional[str] = None
+    followingNum: Optional[int] = None
+    followersNum: Optional[int] = None
+    facebookId: Optional[str] = None
+    googleId: Optional[str] = None
+    email: Optional[str] = None
+    readNum: Optional[int] = None
+    v__: Optional[int] = None
+    notificationsNum: Optional[int] = None
+    relationships: Optional[AuthorRelationshipsModel] = field(
+        converter=SocialsModel.from_json,
+        factory=dict,
     )
-    __v: int
-    notificationsNum: int
-    createdAt: datetime = field(
-        converter=datetime.fromisoformat,
+    socials: Optional[SocialsModel] = field(
+        converter=SocialsModel.from_json,
+        factory=dict,
     )
-    relationships: list[AuthorRelationshipsModel] = field(
-        converter=AuthorRelationshipsModel.from_json
+    createdAt: Optional[datetime] = field(
+        default=None,
+        converter=converters.optional(datetime.fromisoformat),
     )
-    socials: SocialsModel = field(
-        converter=SocialsModel.from_json
-    )
-    articles: list[ArticleCardModel] = field(
-        converter=ArticleCardModel.from_json
-    )
+
+    authorTags: list[Union[dict, "TagModel"]] = []
+    articles: list[Union[dict, "ArticleModel"]] = []
+
+
+class AuthorModel(_AuthorPreDescriptorModel, metaclass=ModelRegistry):
+    """
+    This is a little hack to include Descriptors in `attrs` generated class, while keeping the original
+    signature and properties like `frozen`.
+    """
+    authorTags: list["TagModel"] = ModelField("TagModel")
+    articles: list["ArticleModel"] = ModelField("ArticleModel")

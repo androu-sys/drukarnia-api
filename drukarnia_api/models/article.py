@@ -1,57 +1,65 @@
+from typing import Optional, Union, TYPE_CHECKING
 from datetime import datetime
-from typing import Optional
-from attrs import frozen, field
+from attrs import frozen, field, converters
+from drukarnia_api.models.tools import BaseModel, ModelField, ModelRegistry
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
-from drukarnia_api.models.tag import TagModel
-from drukarnia_api.models.base import BaseModel
-from drukarnia_api.models.author import ArticleFromAuthorModel
-from drukarnia_api.models.author.article_author import ArticleAuthorModel
-from drukarnia_api.models.comment import CommentModel
+
+if TYPE_CHECKING:
+    from drukarnia_api.models.tag import TagModel
+    from drukarnia_api.models.author import AuthorModel
+    from drukarnia_api.models.comment import CommentModel
 
 
 @frozen
-class ArticleModel(BaseModel):
-    _id: str
-    title: str
-    seoTitle: str
-    description: str
-    picture: Optional[str]
-    thumbPicture: Optional[str]
-    mainTag: str
-    mainTagSlug: str
-    mainTagId: str
-    tags: list[TagModel] = field(
-        converter=TagModel.from_json,
+class _ArticlePreDescriptorModel(BaseModel):
+    id_: str
+    title: Optional[str] = None
+    seoTitle: Optional[str] = None
+    description: Optional[str] = None
+    picture: Optional[str] = None
+    thumbPicture: Optional[str] = None
+    mainTag: Optional[str] = None
+    mainTagSlug: Optional[str] = None
+    mainTagId: Optional[str] = None
+    ads: Optional[bool] = None
+    index: Optional[bool] = None
+    sensitive: Optional[bool] = None
+    canonical: Optional[str] = None
+    likeNum: Optional[int] = None
+    commentNum: Optional[int] = None
+    readTime: Optional[int] = None
+    slug: Optional[str] = None
+    content: Optional[dict] = None
+    createdAt: Optional[datetime] = field(
+        converter=converters.optional(datetime.fromisoformat),
+        default=None,
     )
-    ads: bool
-    index: bool
-    sensetive: bool
-    canonical: Optional[str]
-    likeNum: int
-    commentNum: int
-    readTime: int
-    slug: str
-    createdAt: datetime = field(
-        converter=datetime.fromisoformat,
+    isLiked: Optional[bool] = field(
+        converter=converters.optional(bool),
+        default=None,
     )
-    authorArticles: list[ArticleFromAuthorModel] = field(
-        converter=ArticleFromAuthorModel.from_json
+    isBookmarked: Optional[bool] = field(
+        converter=converters.optional(bool),
+        default=None,
     )
-    content: dict
-    owner: ArticleAuthorModel = field(
-        converter=ArticleAuthorModel.from_json
-    )
-    isLiked: bool = field(
-        converter=bool
-    )
-    isBookmarked: bool
-    relationships: AuthorRelationshipsModel = field(
-        converter=AuthorRelationshipsModel.from_json
-    )
-    comments: list[CommentModel] = field(
-        converter=CommentModel.from_json,
-    )
-    recommendedArticles: list["ArticleModel"] = field(
-        converter=ArticleModel.from_json
+    relationships: Optional[AuthorRelationshipsModel] = field(
+        converter=converters.optional(AuthorRelationshipsModel.from_json),
+        default=None,
     )
 
+    tags: Optional[list[Union["TagModel", dict]]] = None
+    authorArticles: Optional[list[Union["ArticleModel", dict]]] = None
+    owner: Optional[Union["AuthorModel", dict]] = field(
+        converter=converters.optional(lambda data: {"id_": data} if isinstance(data, str) else data),
+        default=None,
+    )
+    comments: Optional[list[Union["CommentModel", dict]]] = None
+    recommendedArticles: Optional[list[Union["ArticleModel", dict]]] = None
+
+
+class ArticleModel(_ArticlePreDescriptorModel, metaclass=ModelRegistry):
+    tags: list["TagModel"] = ModelField("TagModel")
+    authorArticles: list["ArticleModel"] = ModelField("ArticleModel")
+    owner: "AuthorModel" = ModelField("AuthorModel")
+    comments: list["CommentModel"] = ModelField("CommentModel")
+    recommendedArticles: list["ArticleModel"] = ModelField("ArticleModel")

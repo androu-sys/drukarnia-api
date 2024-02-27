@@ -1,7 +1,7 @@
-from typing import TypeVar
-from drukarnia_api.models.base import BaseModel
+from typing import TypeVar, Optional
+from drukarnia_api.models.tools import BaseModel, ModelRegistry
 from datetime import datetime
-from attrs import frozen, field
+from attrs import frozen, field, converters
 from enum import IntEnum
 
 
@@ -21,16 +21,24 @@ class NotificationType(IntEnum):
 
 
 @frozen
-class NotificationModel(BaseModel):
-    _id: str
-    owner: str
-    type: NotificationType | int = field(
-        converter=NotificationType.new_with_other_fallback
+class NotificationModel(BaseModel, metaclass=ModelRegistry):
+    id_: str
+    owner: Optional[str] = None
+    type: Optional[NotificationType | int] = field(
+        converter=converters.optional(NotificationType.new_with_other_fallback),
+        default=None,
     )
-    seen: bool
-    isLiked: bool
-    createdAt: datetime = field(
-        converter=datetime.fromisoformat,
+    seen: Optional[bool] = field(
+        converter=converters.optional(bool),
+        default=None,
     )
-    details: dict
-    __v: int
+    isLiked: Optional[bool] = field(
+        converter=converters.optional(bool),
+        default=None,
+    )
+    createdAt: Optional[datetime] = field(
+        converter=converters.optional(datetime.fromisoformat),
+        default=None,
+    )
+    details: Optional[dict] = None
+    v__: Optional[int] = None

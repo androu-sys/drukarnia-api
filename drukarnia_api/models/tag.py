@@ -1,17 +1,18 @@
 from typing import Optional
-from attrs import frozen, field
-from drukarnia_api.models.base import BaseModel
+from attrs import frozen, field, converters
+from drukarnia_api.models.tools import BaseModel, ModelRegistry
 from datetime import datetime
 
 
 @frozen
-class TagModel(BaseModel):
-    _id: str
-    name: str
-    slug: str
-    __v: Optional[int]
-    createdAt: datetime = field(
-        converter=datetime.fromisoformat,
+class TagModel(BaseModel, metaclass=ModelRegistry):
+    id_: str
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    v__: Optional[int] = None
+    createdAt: Optional[datetime] = field(
+        converter=converters.optional(datetime.fromisoformat),
+        default=None,
     )
-    default: bool
-    mentionsNum: int
+    default: Optional[bool] = None
+    mentionsNum: Optional[int] = None

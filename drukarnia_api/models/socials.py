@@ -1,16 +1,16 @@
 from typing import Optional
-from drukarnia_api.models.base import BaseModel
+from drukarnia_api.models.tools import BaseModel, ModelRegistry
 from attrs import frozen
 
 
 @frozen
-class SocialsModel(BaseModel):
-    telegram: Optional[str]
-    instagram: Optional[str]
-    twitter: Optional[str]
-    bluesky: Optional[str]
-    facebook: Optional[str]
-    linkedin: Optional[str]
-    youtube: Optional[str]
-    tiktok: Optional[str]
-    website: Optional[str]
+class SocialsModel(BaseModel, metaclass=ModelRegistry):
+    telegram: Optional[str] = None
+    instagram: Optional[str] = None
+    twitter: Optional[str] = None
+    bluesky: Optional[str] = None
+    facebook: Optional[str] = None
+    linkedin: Optional[str] = None
+    youtube: Optional[str] = None
+    tiktok: Optional[str] = None
+    website: Optional[str] = None
