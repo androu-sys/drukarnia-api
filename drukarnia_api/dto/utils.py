@@ -31,5 +31,4 @@ def starts_with(prefix: Any) -> Callable[[Any, attrs.Attribute, Any], None]:
         if not value.startswith(prefix):
             raise ValueError(f"{attribute.name} must start with '{prefix}'")
 
-
     return validate

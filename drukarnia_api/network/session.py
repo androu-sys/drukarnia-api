@@ -1,5 +1,6 @@
-from typing import Any, Optional, Self, Type
-
+from types import TracebackType
+from typing import Optional, Self, Type
+from functools import partialmethod
 from aiohttp import ClientSession
 from aiohttp import ClientResponse
 
@@ -34,35 +35,18 @@ class DrukarniaSession:
         )
 
         await _check_response(response)
-
         return response
 
-    async def get(
-        self,
-        url: str,
-        **kwargs,
-    ) -> ClientResponse:
-        return await self.__call__(
-            method="GET",
-            url=url,
-            **kwargs,
-        )
-
-    async def post(
-        self,
-        url: str,
-        **kwargs,
-    ) -> ClientResponse:
-        return await self.__call__(
-            method="POST",
-            url=url,
-            **kwargs,
-        )
+    post = partialmethod(__call__, method="POST")
+    get = partialmethod(__call__, method="GET")
+    patch = partialmethod(__call__, method="PATCH")
+    put = partialmethod(__call__, method="PUT")
+    delete = partialmethod(__call__, method="DELETE")
 
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
-        traceback: Any,
+        traceback: Optional[TracebackType],
     ) -> None:
         await self._session.__aexit__(exc_type, exc_value, traceback)

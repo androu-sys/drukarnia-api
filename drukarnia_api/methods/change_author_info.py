@@ -1,27 +1,26 @@
-from typing import Any
-from attrs import frozen, field
+from typing import Any, TYPE_CHECKING
+
+from attr import frozen
+
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.network.session import DrukarniaSession
-from drukarnia_api.dto import UserInfoUpdate, to_dict
+from drukarnia_api.dto import UserInfoUpdate
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
 class ChangeAuthorInfo(BaseMethod[None]):
     config: "UserInfoUpdate"
 
-    url: str = field(
-        init=False,
-        default="/api/users",
-    )
-
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
     ) -> None:
-        await session(
-            "PATCH",
-            self.url,
-            data=to_dict(UserInfoUpdate),
+        await session.patch(
+            DrukarniaEndpoints.ChangeUserGeneralInfo,
+            data=self.config.as_dict(),
             **kwargs,
         )

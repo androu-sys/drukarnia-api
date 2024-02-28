@@ -16,4 +16,4 @@ class BaseMethod(ABC, Generic[ResultType]):
 
     @abstractmethod
     async def _request(self, session: "DrukarniaSession", **kwargs: Any) -> ResultType:
-        raise NotImplementedError("Implement `_from_response` in child class.")
+        raise NotImplementedError("Implement `_request` in child class.")

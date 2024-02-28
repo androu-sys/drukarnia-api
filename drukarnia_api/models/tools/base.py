@@ -1,25 +1,23 @@
 from typing import TypeVar, Type, overload
-from attrs import define
 
-DTO = TypeVar("DTO", bound="BaseDTO")
+Model = TypeVar("Model", bound="BaseModel")
 
 
-@define
 class BaseModel:
     __slots__ = ()
 
     @classmethod
     @overload
-    def from_json(cls: Type[DTO], data: dict) -> DTO:
+    def from_json(cls: Type[Model], data: dict) -> Model:
         ...
 
     @classmethod
     @overload
-    def from_json(cls: Type[DTO], data: list) -> list[DTO]:
+    def from_json(cls: Type[Model], data: list) -> list[Model]:
         ...
 
     @classmethod
-    def from_json(cls: Type[DTO], data: list | dict) -> DTO | list[DTO]:
+    def from_json(cls: Type[Model], data: list | dict) -> Model | list[Model]:
         if isinstance(data, dict):
             return cls(**data)
 

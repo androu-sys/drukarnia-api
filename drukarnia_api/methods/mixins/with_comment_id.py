@@ -1,6 +1,6 @@
-from attr import define, field, validators
+from attr import frozen, field, validators
 
 
-@define
-class MixinWithCommentID:
+@frozen
+class MixinWithCommentId:
     comment_id: str = field(validator=validators.instance_of(str))
