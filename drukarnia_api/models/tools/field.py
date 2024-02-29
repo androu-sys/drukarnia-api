@@ -8,7 +8,7 @@ Model = TypeVar("Model", bound=BaseModel)
 RType = Optional[Model | list[Model] | tuple[Model] | Generator[Model, None, None]]
 
 
-class ModelField:
+class Join:
     _instance_field_name: str
 
     def __init__(self, model: str) -> None:

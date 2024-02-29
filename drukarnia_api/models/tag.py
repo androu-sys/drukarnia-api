@@ -1,6 +1,6 @@
 from typing import Optional, Union, TYPE_CHECKING
 from attrs import frozen, field, converters
-from drukarnia_api.models.tools import BaseModel, ModelRegistry, ModelField
+from drukarnia_api.models.tools import BaseModel, ModelRegistry, Join
 from datetime import datetime
 
 if TYPE_CHECKING:
@@ -23,4 +23,4 @@ class _PreDescriptorTagModel(BaseModel):
 
 
 class TagModel(_PreDescriptorTagModel, metaclass=ModelRegistry):
-    articles: list["ArticleModel"] = ModelField("ArticleModel")
+    articles: list["ArticleModel"] = Join("ArticleModel")

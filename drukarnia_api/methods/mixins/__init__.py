@@ -8,7 +8,7 @@ from drukarnia_api.methods.mixins.with_section import MixinWithSectionId
 from drukarnia_api.methods.mixins.with_query import MixinWithQuery
 
 
-__all__ = (
+__all__ = [
     "MixinWithArticleId",
     "MixinWithCommentId",
     "MixinWithPagination",
@@ -19,4 +19,4 @@ __all__ = (
     "MixinWithTagSlug",
     "MixinWithQuery",
     "MixinWithUnsubscribeOption",
-)
+]

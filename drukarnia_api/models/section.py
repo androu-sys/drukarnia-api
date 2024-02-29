@@ -1,7 +1,7 @@
 from typing import Optional, Union, TYPE_CHECKING
 from datetime import datetime
 from attrs import frozen, field, converters
-from drukarnia_api.models.tools import BaseModel, ModelField, ModelRegistry
+from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
 
 if TYPE_CHECKING:
     from drukarnia_api.models.article import ArticleModel
@@ -43,4 +43,4 @@ class _BookmarkPreDescriptorModel(BaseModel):
 
 
 class SectionModel(_BookmarkPreDescriptorModel, metaclass=ModelRegistry):
-    articles: list["ArticleModel"] = ModelField("ArticleModel")
+    articles: list["ArticleModel"] = Join("ArticleModel")

@@ -1,6 +1,6 @@
 from typing import Optional, TYPE_CHECKING, Union
 from attrs import frozen, field, converters
-from drukarnia_api.models.tools import ModelRegistry, ModelField, BaseModel
+from drukarnia_api.models.tools import ModelRegistry, Join, BaseModel
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
 from drukarnia_api.models.socials import SocialsModel
 from datetime import datetime
@@ -48,5 +48,5 @@ class AuthorModel(_AuthorPreDescriptorModel, metaclass=ModelRegistry):
     This is a little hack to include Descriptors in `attrs` generated class, while keeping the original
     signature and properties like `frozen`.
     """
-    authorTags: list["TagModel"] = ModelField("TagModel")
-    articles: list["ArticleModel"] = ModelField("ArticleModel")
+    authorTags: list["TagModel"] = Join("TagModel")
+    articles: list["ArticleModel"] = Join("ArticleModel")

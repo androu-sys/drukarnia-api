@@ -1,6 +1,6 @@
 from drukarnia_api.models.article import ArticleModel
 from drukarnia_api.models.author import AuthorModel
-from drukarnia_api.models.bookmark import SectionModel
+from drukarnia_api.models.section import SectionModel
 from drukarnia_api.models.comment import CommentModel
 from drukarnia_api.models.notification import NotificationModel, NotificationType
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
@@ -11,9 +11,7 @@ from drukarnia_api.models.tools import *
 
 __all__ = [
     "BaseModel",
-    "ModelField",
-    "ModelRegistry",
-    "ModelField",
+    "Join",
     "ModelRegistry",
     "ArticleModel",
     "AuthorModel",

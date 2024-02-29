@@ -1,7 +1,7 @@
 from typing import Optional, Union, TYPE_CHECKING
 from datetime import datetime
 from attrs import frozen, field, converters
-from drukarnia_api.models.tools import BaseModel, ModelField, ModelRegistry
+from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
 
 if TYPE_CHECKING:
@@ -58,8 +58,8 @@ class _ArticlePreDescriptorModel(BaseModel):
 
 
 class ArticleModel(_ArticlePreDescriptorModel, metaclass=ModelRegistry):
-    tags: list["TagModel"] = ModelField("TagModel")
-    authorArticles: list["ArticleModel"] = ModelField("ArticleModel")
-    owner: "AuthorModel" = ModelField("AuthorModel")
-    comments: list["CommentModel"] = ModelField("CommentModel")
-    recommendedArticles: list["ArticleModel"] = ModelField("ArticleModel")
+    tags: list["TagModel"] = Join("TagModel")
+    authorArticles: list["ArticleModel"] = Join("ArticleModel")
+    owner: "AuthorModel" = Join("AuthorModel")
+    comments: list["CommentModel"] = Join("CommentModel")
+    recommendedArticles: list["ArticleModel"] = Join("ArticleModel")
