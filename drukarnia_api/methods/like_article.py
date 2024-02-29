@@ -1,18 +1,20 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from attr import field, frozen, validators
-
+from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.methods.mixins import MixinWithArticleID
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.methods.mixins import MixinWithArticleId
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class LikeArticle(MixinWithArticleID, BaseMethod[None]):
+class LikeArticle(MixinWithArticleId, BaseMethod[None]):
     n_likes: int = field(
         validator=(
             validators.instance_of(int),
-            validators.gt(val=0),
+            validators.ge(val=0),
             validators.le(val=10),
         ),
     )
@@ -24,7 +26,9 @@ class LikeArticle(MixinWithArticleID, BaseMethod[None]):
         **kwargs: Any,
     ) -> None:
         await session.post(
-            url=self.url.format(self.article_id),
-            data={"likes": int(self.n_likes)},
+            url=DrukarniaEndpoints.LikeArticle.format(article_id=self.article_id),
+            data={
+                "likes": self.n_likes,
+            },
             **kwargs,
         )

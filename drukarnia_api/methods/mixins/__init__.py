@@ -1,12 +1,22 @@
-from drukarnia_api.methods.mixins.with_article_id import MixinWithArticleID
-from drukarnia_api.methods.mixins.with_comment_id import MixinWithCommentID
-from drukarnia_api.methods.mixins.with_page import MixinWithPage
-from drukarnia_api.methods.mixins.with_tag_id import MixinWithTagID
+from drukarnia_api.methods.mixins.with_article import MixinWithArticleId
+from drukarnia_api.methods.mixins.with_comment import MixinWithCommentId
+from drukarnia_api.methods.mixins.with_pagination import MixinWithPagination
+from drukarnia_api.methods.mixins.with_author import MixinWithAuthorId
+from drukarnia_api.methods.mixins.with_tag import MixinWithTagId, MixinWithTagSlug
+from drukarnia_api.methods.mixins.with_bool_option import MixinWithUnblockOption, MixinWithUnsubscribeOption
+from drukarnia_api.methods.mixins.with_section import MixinWithSectionId
+from drukarnia_api.methods.mixins.with_query import MixinWithQuery
 
 
 __all__ = (
-    "MixinWithPage",
-    "MixinWithArticleID",
-    "MixinWithCommentID",
-    "MixinWithTagID",
+    "MixinWithArticleId",
+    "MixinWithCommentId",
+    "MixinWithPagination",
+    "MixinWithAuthorId",
+    "MixinWithTagId",
+    "MixinWithUnblockOption",
+    "MixinWithSectionId",
+    "MixinWithTagSlug",
+    "MixinWithQuery",
+    "MixinWithUnsubscribeOption",
 )

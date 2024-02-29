@@ -1,4 +1,5 @@
 from typing import Self, Optional, Type, Any
+from types import TracebackType
 from drukarnia_api.methods.base import BaseMethod, ResultType
 from drukarnia_api.network.session import DrukarniaSession
 
@@ -26,6 +27,6 @@ class API:
         self,
         exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
-        traceback: Any,
+        traceback: Optional[TracebackType],
     ) -> None:
         await self._session.__aexit__(exc_type, exc_value, traceback)

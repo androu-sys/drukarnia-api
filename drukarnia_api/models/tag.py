@@ -1,11 +1,14 @@
-from typing import Optional
+from typing import Optional, Union, TYPE_CHECKING
 from attrs import frozen, field, converters
-from drukarnia_api.models.tools import BaseModel, ModelRegistry
+from drukarnia_api.models.tools import BaseModel, ModelRegistry, ModelField
 from datetime import datetime
+
+if TYPE_CHECKING:
+    from drukarnia_api.models.article import ArticleModel
 
 
 @frozen
-class TagModel(BaseModel, metaclass=ModelRegistry):
+class _PreDescriptorTagModel(BaseModel):
     id_: str
     name: Optional[str] = None
     slug: Optional[str] = None
@@ -16,3 +19,8 @@ class TagModel(BaseModel, metaclass=ModelRegistry):
     )
     default: Optional[bool] = None
     mentionsNum: Optional[int] = None
+    articles: Optional[Union[list["ArticleModel"], list[dict]]] = None
+
+
+class TagModel(_PreDescriptorTagModel, metaclass=ModelRegistry):
+    articles: list["ArticleModel"] = ModelField("ArticleModel")

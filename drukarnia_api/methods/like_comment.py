@@ -1,14 +1,20 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from attr import field, frozen
-
+from attrs import frozen, field
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.methods.mixins import MixinWithArticleID, MixinWithCommentID
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentId
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class LikeComment(MixinWithArticleID, MixinWithCommentID, BaseMethod[None]):
+class LikeComment(
+    MixinWithArticleId,
+    MixinWithCommentId,
+    BaseMethod[None],
+):
     url: str = field(
         init=False,
         default="/api/articles/{article_id}/comments/{comment_id}/likes",
@@ -20,7 +26,10 @@ class LikeComment(MixinWithArticleID, MixinWithCommentID, BaseMethod[None]):
         **kwargs: Any,
     ) -> None:
         await session.post(
-            url=self.url.format(self.article_id, self.comment_id),
+            url=DrukarniaEndpoints.LikeComment.format(
+                article_id=self.article_id,
+                comment_id=self.comment_id,
+            ),
             data={},
             **kwargs,
         )

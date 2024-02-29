@@ -1,10 +1,11 @@
-from drukarnia_api.methods.get_followers import GetFollowers
 from attrs import frozen, field
+from drukarnia_api.methods.get_followers import GetFollowers
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 
 @frozen
-class GetFollowings(GetFollowers):  # type: ignore[misc]
-    url: str = field(
+class GetFollowings(GetFollowers):
+    url = field(
         init=False,
-        default="/api/relationships/{author_id}/following",
+        default=DrukarniaEndpoints.GetFollowings
     )

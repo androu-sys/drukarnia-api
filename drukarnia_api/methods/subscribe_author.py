@@ -1,25 +1,28 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from attrs import frozen, field
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.methods.mixins import MixinWithAuthorId, MixinWithUnsubscribeOption
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class SubscribeAuthor(BaseMethod[None]):
-    author_id: str
-    url: str = field(
-        init=False,
-        default="/api/relationships/subscribe/{author_id}",
-    )
-
+class SubscribeToAuthor(
+    MixinWithUnsubscribeOption,
+    MixinWithAuthorId,
+    BaseMethod[None],
+):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
     ) -> None:
-        await session.post(
-            self.url.format(author_id=self.author_id),
+        await session(
+            method=("DELETE" if self.unsubscribe else "POST"),
+            url=DrukarniaEndpoints.SubscribeToAuthor.format(author_id=self.author_id),
             data={},
             **kwargs,
         )

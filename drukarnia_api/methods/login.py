@@ -1,19 +1,21 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from attr import define, field, validators
+from attrs import frozen, field, validators
+from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.models import AuthorModel
-from drukarnia_api.methods import BaseMethod
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
-@define
+@frozen
 class Login(BaseMethod[AuthorModel]):
-    email: str = field(validator=validators.instance_of(str))
-    password: str = field(validator=validators.instance_of(str))
-
-    url: str = field(
-        init=False,
-        default="/api/users/login",
+    email: str = field(
+        validator=validators.instance_of(str),
+    )
+    password: str = field(
+        validator=validators.instance_of(str),
     )
 
     async def _request(
@@ -23,9 +25,13 @@ class Login(BaseMethod[AuthorModel]):
     ) -> AuthorModel:
         # Cookies are automatically updated by aiohttp
         response = await session.post(
-            data={"password": self.password, "email": self.email},
+            url=DrukarniaEndpoints.AuthorLogin,
+            data={
+                "password": self.password,
+                "email": self.email,
+            },
             **kwargs,
         )
 
         author_data = await response.json()
-        return AuthorModel(**author_data["user"])
+        return AuthorModel.from_json(author_data["user"])

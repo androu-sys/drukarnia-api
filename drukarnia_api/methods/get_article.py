@@ -1,17 +1,19 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from attr import field, frozen, validators
-
+from attrs import frozen, validators, field
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.models import ArticleModel
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
 class GetArticle(BaseMethod[ArticleModel]):
-    article_id: str
-    slug: str
-    url: str = field(init=False, default="/api/articles/{slug}")
+    article_slug: str = field(
+        validator=validators.instance_of(str),
+    )
 
     async def _request(
         self,
@@ -19,10 +21,10 @@ class GetArticle(BaseMethod[ArticleModel]):
         **kwargs: Any,
     ) -> ArticleModel:
         response = await session.get(
-            url=self.url.format(slug=self.slug),
+            url=DrukarniaEndpoints.GetArticleInfo.format(slug=self.article_slug),
             data={},
             **kwargs,
         )
 
-        data = await response.json()
-        return ArticleModel.from_json(**data)
+        record = await response.json()
+        return ArticleModel.from_json(record)

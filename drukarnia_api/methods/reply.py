@@ -1,38 +1,45 @@
-from typing import Any, Optional
+from typing import Any, TYPE_CHECKING
 
-from attr import field, frozen
-
+from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.network.session import DrukarniaSession
-from drukarnia_api.methods.mixins import MixinWithArticleID
+from drukarnia_api.models import CommentModel
+from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentId, MixinWithAuthorId
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class ReplyToComment(MixinWithArticleID, BaseMethod[str]):
-    reply_to_comment_id: str
-    comment_text: str
-    owner_id: Optional[str]
-    url: str = field(
-        init=False,
-        default="/api/articles/{article_id}/comments/{comment_id}/replies",
+@frozen(kw_only=True)
+class ReplyToComment(
+    MixinWithArticleId,
+    MixinWithCommentId,
+    MixinWithAuthorId,
+    BaseMethod[CommentModel],
+):
+    comment_text: str = field(
+        validator=validators.instance_of(str)
     )
 
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> str:
+    ) -> CommentModel:
         response = await session.post(
-            url=self.url.format(self.article_id, self.reply_to_comment_id),
+            url=DrukarniaEndpoints.ReplyToComment.format(
+                article_id=self.article_id,
+                comment_id=self.comment_id,
+            ),
             data={
                 "comment": self.comment_text,
-                "replyToComment": self.reply_to_comment_id,
-                "rootComment": self.reply_to_comment_id,
-                "rootCommentOwner": self.owner_id,
-                "replyToUser": self.owner_id,
+                "replyToComment": self.comment_id,
+                "replyToUser": self.author_id,
+                "rootComment": self.comment_id,     # Not sure
+                "rootCommentOwner": self.author_id,     # Not sure
             },
             **kwargs,
         )
 
         data = await response.read()
-        return data.decode("utf-8")
+        return CommentModel(id_=data.decode("utf-8"))

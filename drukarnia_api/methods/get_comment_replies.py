@@ -1,34 +1,34 @@
-from typing import Any, Generator
+from typing import Any, TYPE_CHECKING, Generator
 
-from attr import field, frozen
-
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.methods.mixins import MixinWithArticleID, MixinWithCommentID
 from drukarnia_api.models import CommentModel
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentId
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
 class GetCommentReplies(
-    MixinWithArticleID,
-    MixinWithCommentID,
+    MixinWithArticleId,
+    MixinWithCommentId,
     BaseMethod[Generator[CommentModel, None, None]],
 ):
-    url: str = field(
-        init=False,
-        default="/api/articles/{article_id}/comments/{comment_id}/replies",
-    )
-
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
     ) -> Generator[CommentModel, None, None]:
         response = await session.post(
-            url=self.url.format(self.article_id, self.comment_id),
+            url=DrukarniaEndpoints.GetCommentReplies.format(
+                article_id=self.article_id,
+                comment_id=self.comment_id,
+            ),
             data={},
             **kwargs,
         )
 
-        data_ = await response.json()
-        return (CommentModel(**data) for data in data_)
+        records = await response.json()
+        return (CommentModel.from_json(record) for record in records)

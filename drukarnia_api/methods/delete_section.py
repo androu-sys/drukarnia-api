@@ -1,9 +1,8 @@
 from typing import Any, TYPE_CHECKING
 
-from attr import frozen
-
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.dto import UserInfoUpdate
+from drukarnia_api.methods.mixins import MixinWithSectionId
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -11,16 +10,15 @@ if TYPE_CHECKING:
 
 
 @frozen
-class ChangeAuthorInfo(BaseMethod[None]):
-    config: "UserInfoUpdate"
+class DeleteSection(MixinWithSectionId, BaseMethod[None]):
 
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
     ) -> None:
-        await session.patch(
-            DrukarniaEndpoints.ChangeUserGeneralInfo,
-            data=self.config.as_dict(),
+        await session.delete(
+            url=DrukarniaEndpoints.DeleteSection.format(section_id=self.section_id),
+            data={},
             **kwargs,
         )

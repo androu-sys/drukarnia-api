@@ -3,7 +3,6 @@ from typing import Any, TYPE_CHECKING, Generator
 from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.models import AuthorModel
-from drukarnia_api.methods.mixins import MixinWithTagId
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -11,21 +10,17 @@ if TYPE_CHECKING:
 
 
 @frozen
-class GetTagRelatedAuthors(
-    MixinWithTagId,
-    BaseMethod[Generator[AuthorModel, None, None]],
-):
-
+class GetBlockedAuthors(BaseMethod[Generator[AuthorModel, None, None]]):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
     ) -> Generator[AuthorModel, None, None]:
         response = await session.get(
-            url=DrukarniaEndpoints.GetTagRelatedAuthors.format(tag_id=self.tag_id),
+            url=DrukarniaEndpoints.GetBlockedAuthors,
             data={},
             **kwargs,
         )
 
-        records = await response.json()
-        return (AuthorModel.from_json(record) for record in records)
+        authors_data = await response.json()
+        return (AuthorModel.from_json(author) for author in authors_data)

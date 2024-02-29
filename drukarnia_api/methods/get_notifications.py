@@ -1,19 +1,20 @@
-from typing import Any, Generator
+from typing import Any, TYPE_CHECKING, Generator
 
-from attrs import frozen, field
-
-from drukarnia_api.models import NotificationModel
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.methods.mixins import MixinWithPage
-from drukarnia_api.network.session import DrukarniaSession
+from drukarnia_api.models import NotificationModel
+from drukarnia_api.methods.mixins import MixinWithPagination
+from drukarnia_api.network.endpoints import DrukarniaEndpoints
+
+if TYPE_CHECKING:
+    from drukarnia_api.network.session import DrukarniaSession
 
 
 @frozen
-class GetNotifications(MixinWithPage, BaseMethod[Generator[NotificationModel, None, None]]):
-    url: str = field(
-        init=False,
-        default="/api/notifications",
-    )
+class GetNotifications(
+    MixinWithPagination,
+    BaseMethod[Generator[NotificationModel, None, None]],
+):
 
     async def _request(
         self,
@@ -21,11 +22,11 @@ class GetNotifications(MixinWithPage, BaseMethod[Generator[NotificationModel, No
         **kwargs: Any,
     ) -> Generator[NotificationModel, None, None]:
         response = await session.get(
-            self.url,
+            url=DrukarniaEndpoints.GetNotifications,
             data={},
             params={"page": self.page},
             **kwargs,
         )
 
-        notifications = await response.json()
-        return (NotificationModel(**author) for author in notifications)
+        data = await response.json()
+        return (NotificationModel.from_json(notif) for notif in data)

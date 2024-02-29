@@ -1,4 +1,4 @@
-from typing import TypeVar, Type, overload, Self, Optional, Generator
+from typing import TypeVar, Type, overload, Self, Optional, Generator, Any
 from drukarnia_api.models.tools.base import BaseModel
 from drukarnia_api.models.tools.registry import ModelRegistry
 from typeguard import check_type, TypeCheckError
@@ -30,10 +30,10 @@ class ModelField:
         try:
             check_type(data, RType)
         except TypeCheckError:
-            print(data)
-            model: BaseModel = ModelRegistry.get_model(self._model)
-            instance.__dict__[self._instance_field_name] = (results := model.from_json(data))
-            return results
+            data = ModelRegistry.get_model(self._model).from_json(data)
+            self.__set__(instance, data)
 
-    def __set__(self, instance: Model, value: Type[Model]) -> None:
+        return data
+
+    def __set__(self, instance: Model, value: Any) -> None:
         instance.__dict__[self._instance_field_name] = value

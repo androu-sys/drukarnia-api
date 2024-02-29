@@ -42,5 +42,5 @@ class _BookmarkPreDescriptorModel(BaseModel):
     )
 
 
-class BookmarkModel(_BookmarkPreDescriptorModel, metaclass=ModelRegistry):
+class SectionModel(_BookmarkPreDescriptorModel, metaclass=ModelRegistry):
     articles: list["ArticleModel"] = ModelField("ArticleModel")
