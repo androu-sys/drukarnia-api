@@ -28,7 +28,7 @@ class FindAuthor(MixinWithPagination, MixinWithQuery, BaseMethod[Generator[Autho
             params={
                 "name": self.query,
                 "withRelationships": self.with_relations,
-                "page": self.pge,
+                "page": self.page,
             },
             **kwargs,
         )
