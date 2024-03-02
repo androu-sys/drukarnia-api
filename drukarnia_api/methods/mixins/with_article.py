@@ -1,6 +1,11 @@
 from attr import frozen, field, validators
 
 
-@frozen
+@frozen(slots=False)
 class MixinWithArticleId:
     article_id: str = field(validator=validators.instance_of(str))
+
+
+@frozen(slots=False)
+class MixinWithArticleSlug:
+    article_slug: str = field(validator=validators.instance_of(str))

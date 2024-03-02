@@ -32,11 +32,11 @@ class NotificationModel(BaseModel, metaclass=ModelRegistry):
         converter=converters.optional(bool),
         default=None,
     )
-    isLiked: Optional[bool] = field(
+    is_liked: Optional[bool] = field(
         converter=converters.optional(bool),
         default=None,
     )
-    createdAt: Optional[datetime] = field(
+    created_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )

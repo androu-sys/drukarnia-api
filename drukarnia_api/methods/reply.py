@@ -3,7 +3,12 @@ from typing import Any, TYPE_CHECKING
 from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.models import CommentModel
-from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentId, MixinWithAuthorId
+from drukarnia_api.methods.mixins import (
+    MixinWithArticleId,
+    MixinWithCommentId,
+    MixinWithAuthorId,
+    MixinWithCommentText,
+)
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -12,15 +17,12 @@ if TYPE_CHECKING:
 
 @frozen(kw_only=True)
 class ReplyToComment(
+    MixinWithCommentText,
     MixinWithArticleId,
     MixinWithCommentId,
     MixinWithAuthorId,
     BaseMethod[CommentModel],
 ):
-    comment_text: str = field(
-        validator=validators.instance_of(str)
-    )
-
     async def _request(
         self,
         session: "DrukarniaSession",

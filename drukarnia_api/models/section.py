@@ -21,18 +21,18 @@ def _extract_article_dicts(data: list | dict) -> list[dict] | dict:
 class _BookmarkPreDescriptorModel(BaseModel):
     id_: str
     name: Optional[str] = None
-    articlesNum: Optional[int] = None
+    articles_num: Optional[int] = None
     owner: Optional[str] = None
-    createdAt: Optional[datetime] = field(
+    created_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )
-    updatedAt: Optional[datetime] = field(
+    updated_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )
     v__: Optional[int] = None
-    isLiked: Optional[bool] = field(
+    is_liked: Optional[bool] = field(
         converter=converters.optional(bool),
         default=None,
     )

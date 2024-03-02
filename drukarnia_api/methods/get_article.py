@@ -1,7 +1,8 @@
 from typing import Any, TYPE_CHECKING
 
-from attrs import frozen, validators, field
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.mixins import MixinWithArticleSlug
 from drukarnia_api.models import ArticleModel
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
@@ -9,12 +10,11 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class GetArticle(BaseMethod[ArticleModel]):
-    article_slug: str = field(
-        validator=validators.instance_of(str),
-    )
-
+@frozen(kw_only=True)
+class GetArticle(
+    MixinWithArticleSlug,
+    BaseMethod[ArticleModel],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

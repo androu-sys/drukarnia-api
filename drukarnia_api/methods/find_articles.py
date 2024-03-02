@@ -10,8 +10,12 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class FindArticle(MixinWithPagination, MixinWithQuery, BaseMethod[Generator[ArticleModel, None, None]]):
+@frozen(kw_only=True)
+class FindArticle(
+    MixinWithPagination,
+    MixinWithQuery,
+    BaseMethod[Generator[ArticleModel, None, None]],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

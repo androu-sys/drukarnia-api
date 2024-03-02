@@ -14,31 +14,31 @@ if TYPE_CHECKING:
 class _ArticlePreDescriptorModel(BaseModel):
     id_: str
     title: Optional[str] = None
-    seoTitle: Optional[str] = None
+    seo_title: Optional[str] = None
     description: Optional[str] = None
     picture: Optional[str] = None
-    thumbPicture: Optional[str] = None
-    mainTag: Optional[str] = None
-    mainTagSlug: Optional[str] = None
-    mainTagId: Optional[str] = None
+    thumb_picture: Optional[str] = None
+    main_tag: Optional[str] = None
+    main_tag_slug: Optional[str] = None
+    main_tag_id: Optional[str] = None
     ads: Optional[bool] = None
     index: Optional[bool] = None
     sensitive: Optional[bool] = None
     canonical: Optional[str] = None
-    likeNum: Optional[int] = None
-    commentNum: Optional[int] = None
-    readTime: Optional[int] = None
+    like_num: Optional[int] = None
+    comment_num: Optional[int] = None
+    read_time: Optional[int] = None
     slug: Optional[str] = None
     content: Optional[dict] = None
-    createdAt: Optional[datetime] = field(
+    created_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )
-    isLiked: Optional[bool] = field(
+    i_liked: Optional[bool] = field(
         converter=converters.optional(bool),
         default=None,
     )
-    isBookmarked: Optional[bool] = field(
+    is_bookmarked: Optional[bool] = field(
         converter=converters.optional(bool),
         default=None,
     )
@@ -48,18 +48,18 @@ class _ArticlePreDescriptorModel(BaseModel):
     )
 
     tags: Optional[list[Union["TagModel", dict]]] = None
-    authorArticles: Optional[list[Union["ArticleModel", dict]]] = None
+    author_articles: Optional[list[Union["ArticleModel", dict]]] = None
     owner: Optional[Union["AuthorModel", dict]] = field(
         converter=converters.optional(lambda data: {"id_": data} if isinstance(data, str) else data),
         default=None,
     )
     comments: Optional[list[Union["CommentModel", dict]]] = None
-    recommendedArticles: Optional[list[Union["ArticleModel", dict]]] = None
+    recommended_articles: Optional[list[Union["ArticleModel", dict]]] = None
 
 
 class ArticleModel(_ArticlePreDescriptorModel, metaclass=ModelRegistry):
     tags: list["TagModel"] = Join("TagModel")
-    authorArticles: list["ArticleModel"] = Join("ArticleModel")
+    author_articles: list["ArticleModel"] = Join("ArticleModel")
     owner: "AuthorModel" = Join("AuthorModel")
     comments: list["CommentModel"] = Join("CommentModel")
-    recommendedArticles: list["ArticleModel"] = Join("ArticleModel")
+    recommended_articles: list["ArticleModel"] = Join("ArticleModel")

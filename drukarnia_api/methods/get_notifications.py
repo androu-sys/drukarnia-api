@@ -10,12 +10,11 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
+@frozen(kw_only=True)
 class GetNotifications(
     MixinWithPagination,
     BaseMethod[Generator[NotificationModel, None, None]],
 ):
-
     async def _request(
         self,
         session: "DrukarniaSession",

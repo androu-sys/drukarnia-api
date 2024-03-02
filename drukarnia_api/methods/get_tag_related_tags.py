@@ -10,13 +10,12 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
+@frozen(kw_only=True)
 class GetTagRelatedTags(
     MixinWithTagId,
     MixinWithPagination,
     BaseMethod[Generator[TagModel, None, None]],
 ):
-
     async def _request(
         self,
         session: "DrukarniaSession",

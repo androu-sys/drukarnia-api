@@ -26,7 +26,6 @@ from drukarnia_api.methods.get_tag import GetTag
 from drukarnia_api.methods.find_author import FindAuthor
 from drukarnia_api.methods.get_sections import GetSections
 from drukarnia_api.methods.get_reads_history import GetReadsHistory
-from drukarnia_api.methods.remove_like_from_comment import RemoveLikeFromComment
 from drukarnia_api.methods.change_email import ChangeEmail
 from drukarnia_api.methods.get_tag_related_articles import GetTagRelatedArticles
 from drukarnia_api.methods.login import Login
@@ -62,7 +61,6 @@ __all__ = [
     'FindAuthor',
     'GetSections',
     'GetReadsHistory',
-    'RemoveLikeFromComment',
     'ChangeEmail',
     'GetTagRelatedArticles',
     'Login',

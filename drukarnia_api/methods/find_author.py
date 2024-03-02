@@ -1,9 +1,9 @@
 from typing import Any, TYPE_CHECKING, Generator
 
-from attrs import frozen, field, validators
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.models import AuthorModel
-from drukarnia_api.methods.mixins import MixinWithPagination, MixinWithQuery
+from drukarnia_api.methods.mixins import MixinWithPagination, MixinWithQuery, MixinWithRelationsOption
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class FindAuthor(MixinWithPagination, MixinWithQuery, BaseMethod[Generator[AuthorModel, None, None]]):
-    with_relations: bool = field(
-        validator=validators.instance_of(bool),
-        default=False,
-    )
-
+class FindAuthor(
+    MixinWithPagination,
+    MixinWithQuery,
+    MixinWithRelationsOption,
+    BaseMethod[Generator[AuthorModel, None, None]],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

@@ -13,12 +13,12 @@ class _PreDescriptorTagModel(BaseModel):
     name: Optional[str] = None
     slug: Optional[str] = None
     v__: Optional[int] = None
-    createdAt: Optional[datetime] = field(
+    created_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )
     default: Optional[bool] = None
-    mentionsNum: Optional[int] = None
+    mentions_num: Optional[int] = None
     articles: Optional[Union[list["ArticleModel"], list[dict]]] = None
 
 

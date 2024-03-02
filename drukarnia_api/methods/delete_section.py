@@ -9,9 +9,11 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class DeleteSection(MixinWithSectionId, BaseMethod[None]):
-
+@frozen(kw_only=True)
+class DeleteSection(
+    MixinWithSectionId,
+    BaseMethod[None],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

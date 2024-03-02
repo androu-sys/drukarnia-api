@@ -9,9 +9,12 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class DeleteComment(MixinWithCommentId, MixinWithArticleId, BaseMethod[None]):
-
+@frozen(kw_only=True)
+class DeleteComment(
+    MixinWithCommentId,
+    MixinWithArticleId,
+    BaseMethod[None],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

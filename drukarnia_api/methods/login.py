@@ -2,6 +2,7 @@ from typing import Any, TYPE_CHECKING
 
 from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.mixins import MixinWithCurrentPassword
 from drukarnia_api.models import AuthorModel
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
@@ -9,12 +10,12 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class Login(BaseMethod[AuthorModel]):
+@frozen(kw_only=True)
+class Login(
+    MixinWithCurrentPassword,
+    BaseMethod[AuthorModel],
+):
     email: str = field(
-        validator=validators.instance_of(str),
-    )
-    password: str = field(
         validator=validators.instance_of(str),
     )
 
@@ -27,7 +28,7 @@ class Login(BaseMethod[AuthorModel]):
         response = await session.post(
             url=DrukarniaEndpoints.AuthorLogin,
             data={
-                "password": self.password,
+                "password": self.current_password,
                 "email": self.email,
             },
             **kwargs,

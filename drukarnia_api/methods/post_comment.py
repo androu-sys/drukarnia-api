@@ -1,8 +1,9 @@
 from typing import Any, TYPE_CHECKING
 
-from attrs import frozen, field, validators
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.methods.mixins import MixinWithArticleId
+from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentText
+from drukarnia_api.models import CommentModel
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -10,16 +11,16 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class PostComment(MixinWithArticleId, BaseMethod[str]):
-    comment_text: str = field(
-        validator=validators.instance_of(str)
-    )
-
+class PostComment(
+    MixinWithCommentText,
+    MixinWithArticleId,
+    BaseMethod[CommentModel],
+):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> str:
+    ) -> CommentModel:
         response = await session.post(
             url=DrukarniaEndpoints.PostComment.format(article_id=self.article_id),
             data={
@@ -29,4 +30,4 @@ class PostComment(MixinWithArticleId, BaseMethod[str]):
         )
 
         posted_comment_id = await response.read()
-        return str(posted_comment_id)
+        return CommentModel(id_=posted_comment_id.decode('utf-8'))

@@ -1,7 +1,8 @@
 from typing import Any, TYPE_CHECKING, Generator
 
-from attrs import frozen, field, validators
+from attrs import frozen
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.mixins import MixinWithPreviewOption
 from drukarnia_api.models import SectionModel
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
@@ -10,12 +11,10 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class GetSections(BaseMethod[Generator[SectionModel, None, None]]):
-    preview: bool = field(
-        validator=validators.instance_of(bool),
-        default=False
-    )
-
+class GetSections(
+    MixinWithPreviewOption,
+    BaseMethod[Generator[SectionModel, None, None]],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

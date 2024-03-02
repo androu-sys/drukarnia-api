@@ -2,15 +2,18 @@ from typing import Any, TYPE_CHECKING
 
 from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.mixins import MixinWithCurrentPassword
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class ChangeEmail(BaseMethod[None]):
-    current_password: str = field(validator=validators.instance_of(str))
+@frozen(kw_only=True)
+class ChangeEmail(
+    MixinWithCurrentPassword,
+    BaseMethod[None],
+):
     new_email: str = field(validator=validators.instance_of(str))
 
     async def _request(

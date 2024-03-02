@@ -9,8 +9,12 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class BlockTag(MixinWithTagId, MixinWithUnblockOption, BaseMethod[None]):
+@frozen(kw_only=True)
+class BlockTag(
+    MixinWithTagId,
+    MixinWithUnblockOption,
+    BaseMethod[None],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

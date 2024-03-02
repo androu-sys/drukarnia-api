@@ -11,7 +11,11 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class FindTags(MixinWithPagination, MixinWithQuery, BaseMethod[Generator[TagModel, None, None]]):
+class FindTags(
+    MixinWithPagination,
+    MixinWithQuery,
+    BaseMethod[Generator[TagModel, None, None]],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

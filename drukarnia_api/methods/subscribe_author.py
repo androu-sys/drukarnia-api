@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
+@frozen(kw_only=True)
 class SubscribeToAuthor(
     MixinWithUnsubscribeOption,
     MixinWithAuthorId,

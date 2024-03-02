@@ -1,13 +1,13 @@
 from attr import frozen, field, validators
 
 
-@frozen
+@frozen(slots=False)
 class MixinWithPagination:
     page: int = field(
         default=1,
         validator=(
             validators.instance_of(int),
-            validators.ge(0),
+            validators.ge(1),
         ),
     )
 

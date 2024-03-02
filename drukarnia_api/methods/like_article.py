@@ -9,8 +9,11 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class LikeArticle(MixinWithArticleId, BaseMethod[None]):
+@frozen(kw_only=True)
+class LikeArticle(
+    MixinWithArticleId,
+    BaseMethod[None],
+):
     n_likes: int = field(
         validator=(
             validators.instance_of(int),
@@ -18,7 +21,6 @@ class LikeArticle(MixinWithArticleId, BaseMethod[None]):
             validators.le(val=10),
         ),
     )
-    url: str = field(init=False, default="/api/articles/{article_id}/like")
 
     async def _request(
         self,

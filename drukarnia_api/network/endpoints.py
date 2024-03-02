@@ -28,7 +28,7 @@ class DrukarniaEndpoints(StrEnum):
     GetTagRelatedTags = "/api/articles/tags/{tag_id}/related"
     GetTag = "/api/articles/tags/{tag_slug}"
     LikeArticle = "/api/articles/{article_id}/like"
-    LikeComment = RemoveLikeFromComment = "/api/articles/{article_id}/comments/{comment_id}/likes"
+    LikeComment = "/api/articles/{article_id}/comments/{comment_id}/likes"
     AuthorLogin = "/api/users/login"
     PostComment = "/api/articles/{article_id}/comments"
     ReplyToComment = "/api/articles/{article_id}/comments/{comment_id}/replies"

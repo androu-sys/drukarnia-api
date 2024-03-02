@@ -9,8 +9,10 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class GetBlockedAuthors(BaseMethod[Generator[AuthorModel, None, None]]):
+@frozen(kw_only=True)
+class GetBlockedAuthors(
+    BaseMethod[Generator[AuthorModel, None, None]],
+):
     async def _request(
         self,
         session: "DrukarniaSession",

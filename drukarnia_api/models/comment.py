@@ -12,18 +12,18 @@ class _CommentPreDescriptorModel(BaseModel):
     id_: str
     comment: Optional[str] = None
     article: Optional[str] = None
-    hiddenByAuthor: Optional[bool] = None
-    replyNum: Optional[int] = None
-    likesNum: Optional[int] = None
-    createdAt: Optional[datetime] = field(
+    hidden_by_author: Optional[bool] = None
+    reply_num: Optional[int] = None
+    likes_num: Optional[int] = None
+    created_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )
-    isLiked: Optional[bool] = field(
+    is_liked: Optional[bool] = field(
         converter=converters.optional(bool),
         default=None,
     )
-    isBlocked: Optional[bool] = field(
+    is_blocked: Optional[bool] = field(
         converter=converters.optional(bool),
         default=None,
     )

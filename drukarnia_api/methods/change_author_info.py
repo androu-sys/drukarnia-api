@@ -10,8 +10,10 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class ChangeAuthorInfo(BaseMethod[None]):
+@frozen(kw_only=True)
+class ChangeAuthorInfo(
+    BaseMethod[None],
+):
     config: "UserInfoUpdate"
 
     async def _request(

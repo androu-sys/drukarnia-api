@@ -2,6 +2,7 @@ from typing import Any, TYPE_CHECKING
 
 from attrs import frozen, field, validators
 from drukarnia_api.methods.base import BaseMethod
+from drukarnia_api.methods.mixins import MixinWithSectionName
 from drukarnia_api.models import SectionModel
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
@@ -9,10 +10,11 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@frozen
-class CreateSection(BaseMethod[SectionModel]):
-    name: str = field(validator=validators.instance_of(str))
-
+@frozen(kw_only=True)
+class CreateSection(
+    MixinWithSectionName,
+    BaseMethod[SectionModel],
+):
     async def _request(
         self,
         session: "DrukarniaSession",
@@ -22,7 +24,7 @@ class CreateSection(BaseMethod[SectionModel]):
             url=DrukarniaEndpoints.CreateNewSection,
             data={},
             params={
-                "name": self.name,
+                "name": self.section_name,
             },
             **kwargs,
         )
