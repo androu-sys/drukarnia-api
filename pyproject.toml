@@ -3,7 +3,7 @@ name = "drukarnia-api"
 version = "0.1.0"
 description = ""
 authors = [
-    "Psychotim <balduev.desco@mail.ru>",
+    "Psychotim",
     "androu"
 ]
 readme = "README.md"
