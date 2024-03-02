@@ -1,10 +1,14 @@
+from typing import TypeVar, Type, Any
 from drukarnia_api.models.tools.base import BaseModel
 
 
-class ModelRegistry(type):
-    _registry = {}
+Self = TypeVar("Self", bound="ModelRegistry")
 
-    def __new__(cls, name, bases, attrs):
+
+class ModelRegistry(type):
+    _registry: dict[str, Type["BaseModel"]] = {}
+
+    def __new__(cls: Type[Self], name: str, bases: tuple[Type["BaseModel"]], attrs: dict[str, Any]) -> Type["BaseModel"]:
         new_class = super().__new__(cls, name, bases, attrs)
 
         if not issubclass(new_class, BaseModel):
@@ -14,11 +18,7 @@ class ModelRegistry(type):
         return new_class
 
     @classmethod
-    def __contains__(cls, name: str):
-        return name in cls._registry
-
-    @classmethod
-    def get_model(cls, name: str) -> BaseModel:
+    def get_model(cls: Type[Self], name: str) -> Type["BaseModel"]:
         if name in cls._registry:
             return cls._registry[name]
 

@@ -1,7 +1,8 @@
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union, Generator, Any, TYPE_CHECKING
 from datetime import datetime
 from attrs import frozen, field, converters
 from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
+from drukarnia_api.models.types import SerializedModel
 from drukarnia_api.models.relationship import AuthorRelationshipsModel
 
 if TYPE_CHECKING:
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @frozen
-class _ArticlePreDescriptorModel(BaseModel):
+class _ArticlePreDescriptorModel(BaseModel):    # type: ignore[no-untyped-def]
     id_: str
     title: Optional[str] = None
     seo_title: Optional[str] = None
@@ -29,7 +30,7 @@ class _ArticlePreDescriptorModel(BaseModel):
     comment_num: Optional[int] = None
     read_time: Optional[int] = None
     slug: Optional[str] = None
-    content: Optional[dict] = None
+    content: Optional[dict[str, Any]] = None
     created_at: Optional[datetime] = field(
         converter=converters.optional(datetime.fromisoformat),
         default=None,
@@ -47,19 +48,19 @@ class _ArticlePreDescriptorModel(BaseModel):
         default=None,
     )
 
-    tags: Optional[list[Union["TagModel", dict]]] = None
-    author_articles: Optional[list[Union["ArticleModel", dict]]] = None
-    owner: Optional[Union["AuthorModel", dict]] = field(
+    tags: Optional[Generator[Union["TagModel", SerializedModel], None, None]] = None
+    author_articles: Optional[Generator[Union["ArticleModel", SerializedModel], None, None]] = None
+    owner: Optional[Union["AuthorModel", SerializedModel]] = field(
         converter=converters.optional(lambda data: {"id_": data} if isinstance(data, str) else data),
         default=None,
     )
-    comments: Optional[list[Union["CommentModel", dict]]] = None
-    recommended_articles: Optional[list[Union["ArticleModel", dict]]] = None
+    comments: Optional[Generator[Union["CommentModel", SerializedModel], None, None]] = None
+    recommended_articles: Optional[Generator[Union["ArticleModel", SerializedModel], None, None]] = None
 
 
 class ArticleModel(_ArticlePreDescriptorModel, metaclass=ModelRegistry):
-    tags: list["TagModel"] = Join("TagModel")
-    author_articles: list["ArticleModel"] = Join("ArticleModel")
+    tags: Generator["TagModel", None, None] = Join("TagModel")
+    author_articles: Generator["ArticleModel", None, None] = Join("ArticleModel")
     owner: "AuthorModel" = Join("AuthorModel")
-    comments: list["CommentModel"] = Join("CommentModel")
-    recommended_articles: list["ArticleModel"] = Join("ArticleModel")
+    comments: Generator["CommentModel", None, None] = Join("CommentModel")
+    recommended_articles: Generator["ArticleModel", None, None] = Join("ArticleModel")

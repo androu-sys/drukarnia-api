@@ -1,6 +1,7 @@
 from typing import Optional, Union, TYPE_CHECKING
 from datetime import datetime
 from attrs import frozen, field, converters
+from drukarnia_api.models.types import SerializedModel
 from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
 
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ class _CommentPreDescriptorModel(BaseModel):
         default=None,
     )
     v__: Optional[int] = None
-    owner: Optional[Union["AuthorModel", dict]] = None
+    owner: Optional[Union["AuthorModel", SerializedModel]] = None
 
 
 class CommentModel(_CommentPreDescriptorModel, metaclass=ModelRegistry):

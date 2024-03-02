@@ -2,7 +2,7 @@ import attrs
 from typing import Any, Callable
 
 
-def starts_with(prefix: Any) -> Callable[[Any, attrs.Attribute, Any], None]:
+def starts_with(prefix: Any) -> Callable[[Any, attrs.Attribute[Any], Any], None]:
     """
     Creates a custom validator function that checks if a string starts with the given prefix.
 
@@ -13,12 +13,12 @@ def starts_with(prefix: Any) -> Callable[[Any, attrs.Attribute, Any], None]:
         Callable[[object, attr.Attribute, str], None]: A validator function to be used with attrs.
     """
 
-    def validate(instance: Any, attribute: attrs.Attribute, value: Any) -> None:
+    def validate(_: Any, attribute: attrs.Attribute[Any], value: Any) -> None:
         """
         Validates whether the given value starts with the specified prefix.
 
         Args:
-            instance (any): The instance that method is called on.
+            _ (any): The instance that method is called on.
             attribute (attr.Attribute): The attribute being validated.
             value (str): The value of the attribute to validate.
 

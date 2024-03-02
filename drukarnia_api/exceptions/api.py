@@ -1,5 +1,5 @@
 class DrukarniaAPIError(Exception):
-    def __init__(self, message: str, status_code: int or str, request_type: str, request_url: str):
+    def __init__(self, message: str, status_code: int | str, request_type: str, request_url: str):
         """
         Custom exception class for handling errors in the Drukarnia API.
 
@@ -15,7 +15,7 @@ class DrukarniaAPIError(Exception):
         self.request_type = request_type
         self.request_url = request_url
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the exception.
         """

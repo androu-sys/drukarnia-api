@@ -1,5 +1,6 @@
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Generator, Union
 from attrs import frozen, field, converters
+from drukarnia_api.models.types import SerializedModel
 from drukarnia_api.models.tools import ModelRegistry, Join, BaseModel
 from datetime import datetime
 
@@ -26,15 +27,15 @@ class _AuthorPreDescriptorModel(BaseModel):
     read_num: Optional[int] = None
     v__: Optional[int] = None
     notifications_num: Optional[int] = None
-    relationships: Optional[Union[dict, "AuthorRelationshipsModel"]] = None
-    socials: Optional[Union[dict, "SocialsModel"]] = None
+    relationships: Optional[Union[SerializedModel, "AuthorRelationshipsModel"]] = None
+    socials: Optional[Union[SerializedModel, "SocialsModel"]] = None
     created_at: Optional[datetime] = field(
         default=None,
         converter=converters.optional(datetime.fromisoformat),
     )
 
-    author_tags: list[Union[dict, "TagModel"]] = []
-    articles: list[Union[dict, "ArticleModel"]] = []
+    author_tags: Generator[Union[SerializedModel, "TagModel"], None, None] = []
+    articles: Generator[Union[SerializedModel, "ArticleModel"], None, None] = []
 
 
 class AuthorModel(_AuthorPreDescriptorModel, metaclass=ModelRegistry):
@@ -44,5 +45,5 @@ class AuthorModel(_AuthorPreDescriptorModel, metaclass=ModelRegistry):
     """
     socials: "SocialsModel" = Join("SocialsModel")
     relationships: "AuthorRelationshipsModel" = Join("AuthorRelationshipsModel")
-    author_tags: list["TagModel"] = Join("TagModel")
-    articles: list["ArticleModel"] = Join("ArticleModel")
+    author_tags: Generator["TagModel", None, None] = Join("TagModel")
+    articles: Generator["ArticleModel", None, None] = Join("ArticleModel")

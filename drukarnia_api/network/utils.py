@@ -8,7 +8,7 @@ async def _check_response(response: ClientResponse) -> None | NoReturn:
     info = response.request_info
 
     if status in [200, 201]:
-        return
+        return None
 
     raise DrukarniaAPIError(
         message=(await response.json())["message"],

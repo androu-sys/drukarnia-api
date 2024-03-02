@@ -32,5 +32,5 @@ class CreateSection(
         section_id = await response.read()
         return SectionModel(
             id_=section_id.decode('utf-8'),
-            name=self.name,
+            name=self.section_name,
         )

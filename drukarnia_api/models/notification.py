@@ -1,11 +1,11 @@
-from typing import TypeVar, Optional
+from typing import TypeVar, Optional, Any
 from drukarnia_api.models.tools import BaseModel, ModelRegistry
 from datetime import datetime
 from attrs import frozen, field, converters
 from enum import IntEnum
 
 
-C = TypeVar("C")
+C = TypeVar("C", bound="NotificationType")
 
 
 class NotificationType(IntEnum):
@@ -40,5 +40,5 @@ class NotificationModel(BaseModel, metaclass=ModelRegistry):
         converter=converters.optional(datetime.fromisoformat),
         default=None,
     )
-    details: Optional[dict] = None
+    details: Optional[dict[str, Any]] = None
     v__: Optional[int] = None

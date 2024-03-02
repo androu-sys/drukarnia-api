@@ -41,7 +41,7 @@ warn_return_any = true
 follow_imports_for_stubs = true
 namespace_packages = true
 show_absolute_path = true
-disable_error_code = ["union-attr", "var-annotated"]
+disable_error_code = ["union-attr", "var-annotated", "misc", "str-format", "assignment"]
 
 [tool.ruff]
 fix = true

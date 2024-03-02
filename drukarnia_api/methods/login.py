@@ -35,4 +35,4 @@ class Login(
         )
 
         author_data = await response.json()
-        return AuthorModel.from_json(author_data["user"])
+        return AuthorModel.from_json(author_data["user"])   # type: ignore[no-any-return]

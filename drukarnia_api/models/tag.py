@@ -1,6 +1,7 @@
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union, Generator, TYPE_CHECKING
 from attrs import frozen, field, converters
 from drukarnia_api.models.tools import BaseModel, ModelRegistry, Join
+from drukarnia_api.models.types import SerializedModel
 from datetime import datetime
 
 if TYPE_CHECKING:
@@ -19,8 +20,8 @@ class _PreDescriptorTagModel(BaseModel):
     )
     default: Optional[bool] = None
     mentions_num: Optional[int] = None
-    articles: Optional[Union[list["ArticleModel"], list[dict]]] = None
+    articles: Optional[Union[Generator["ArticleModel", None, None], list[SerializedModel]]] = None
 
 
 class TagModel(_PreDescriptorTagModel, metaclass=ModelRegistry):
-    articles: list["ArticleModel"] = Join("ArticleModel")
+    articles: Generator["ArticleModel", None, None] = Join("ArticleModel")

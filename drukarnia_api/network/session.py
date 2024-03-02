@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Optional, Self, Type
+from typing import Optional, Self, Type, Any
 from functools import partialmethod
 from aiohttp import ClientSession
 from aiohttp import ClientResponse
@@ -12,21 +12,21 @@ class DrukarniaSession:
         "_session",
     )
 
-    def __init__(self) -> None:
+    def __init__(self: Self) -> None:
         self._session: ClientSession = ClientSession(
             base_url="https://drukarnia.com.ua",
             trust_env=True,
         )
 
-    async def __aenter__(self) -> Self:
+    async def __aenter__(self: Self) -> Self:
         await self._session.__aenter__()
         return self
 
     async def __call__(
-        self,
+        self: Self,
         method: str,
         url: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> ClientResponse:
         response = await self._session.request(
             method=method,
@@ -44,7 +44,7 @@ class DrukarniaSession:
     delete = partialmethod(__call__, method="DELETE")
 
     async def __aexit__(
-        self,
+        self: Self,
         exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],

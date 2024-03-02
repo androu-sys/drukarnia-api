@@ -15,7 +15,7 @@ class FindArticle(
     MixinWithPagination,
     MixinWithQuery,
     BaseMethod[Generator[ArticleModel, None, None]],
-):
+): #
     async def _request(
         self,
         session: "DrukarniaSession",

@@ -9,7 +9,7 @@ class API:
         "_session",
     )
 
-    def __init__(self, session: DrukarniaSession = None):
+    def __init__(self, session: Optional[DrukarniaSession] = None):
         self._session = session if session else DrukarniaSession()
 
     async def __call__(

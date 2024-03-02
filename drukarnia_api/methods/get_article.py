@@ -27,4 +27,4 @@ class GetArticle(
         )
 
         record = await response.json()
-        return ArticleModel.from_json(record)
+        return ArticleModel.from_json(record)   # type: ignore[no-any-return]

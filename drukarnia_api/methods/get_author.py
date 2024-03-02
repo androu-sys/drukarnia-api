@@ -28,4 +28,4 @@ class GetAuthor(
         )
 
         author_data = await response.json()
-        return AuthorModel.from_json(author_data)
+        return AuthorModel.from_json(author_data)   # type: ignore[no-any-return]

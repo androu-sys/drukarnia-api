@@ -1,15 +1,16 @@
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union, Generator, TYPE_CHECKING
 from datetime import datetime
 from attrs import frozen, field, converters
 from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
+from drukarnia_api.models.types import SerializedModel
 
 if TYPE_CHECKING:
     from drukarnia_api.models.article import ArticleModel
 
 
-def _extract_article_dicts(data: list | dict) -> list[dict] | dict:
-    if isinstance(data, dict):
-        return data["article"]
+def _extract_article_dicts(data: list[SerializedModel] | SerializedModel) -> list[SerializedModel] | SerializedModel:
+    if isinstance(data, SerializedModel):
+        return data["article"]      # type: ignore[no-any-return]
 
     elif isinstance(data, list):
         return [_extract_article_dicts(record) for record in data]
@@ -36,11 +37,11 @@ class _BookmarkPreDescriptorModel(BaseModel):
         converter=converters.optional(bool),
         default=None,
     )
-    articles: Optional[list[Union["ArticleModel", dict]]] = field(
+    articles: Optional[Generator[Union["ArticleModel", SerializedModel], None, None]] = field(
         converter=converters.optional(_extract_article_dicts),
         default=None,
     )
 
 
 class SectionModel(_BookmarkPreDescriptorModel, metaclass=ModelRegistry):
-    articles: list["ArticleModel"] = Join("ArticleModel")
+    articles: Generator["ArticleModel", None, None] = Join("ArticleModel")
