@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithAuthorId, MixinWithUnsubscribeOption
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class SubscribeToAuthor(
+class SubscribeToAuthor(    # type: ignore[misc]
     MixinWithUnsubscribeOption,
     MixinWithAuthorId,
     BaseMethod[None],
@@ -22,7 +23,7 @@ class SubscribeToAuthor(
     ) -> None:
         await session(
             method=("DELETE" if self.unsubscribe else "POST"),
-            url=DrukarniaEndpoints.SubscribeToAuthor.format(author_id=self.author_id),
+            url=DrukarniaEndpoints.SubscribeToAuthor.format(author_id=self.author_id),    # type: ignore[str-format]
             data={},
             **kwargs,
         )

@@ -1,8 +1,8 @@
-from types import TracebackType
-from typing import Optional, Self, Type, Any
 from functools import partialmethod
-from aiohttp import ClientSession
-from aiohttp import ClientResponse
+from types import TracebackType
+from typing import Any, Optional, Self, Type
+
+from aiohttp import ClientResponse, ClientSession
 
 from drukarnia_api.network.utils import _check_response
 

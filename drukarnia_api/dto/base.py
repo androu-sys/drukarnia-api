@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from abc import ABC
-from typing import TypeVar, Any, Self
-from attrs import define, asdict
+from typing import Any, Self, TypeVar
+
+from attrs import asdict, define
 
 DTO = TypeVar("DTO", bound="BaseDTO")
 

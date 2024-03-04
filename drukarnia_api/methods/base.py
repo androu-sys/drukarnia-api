@@ -1,5 +1,5 @@
-from typing import Generic, TypeVar, Any, TYPE_CHECKING
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
@@ -16,4 +16,5 @@ class BaseMethod(ABC, Generic[ResultType]):
 
     @abstractmethod
     async def _request(self, session: "DrukarniaSession", **kwargs: Any) -> ResultType:
-        raise NotImplementedError("Implement `_request` in child class.")
+        msg = "Implement `_request` in child class."
+        raise NotImplementedError(msg)

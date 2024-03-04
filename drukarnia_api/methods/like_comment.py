@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentId, MixinWithUnlikeOption
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class LikeComment(
+class LikeComment(    # type: ignore[misc]
     MixinWithUnlikeOption,
     MixinWithArticleId,
     MixinWithCommentId,
@@ -26,7 +27,7 @@ class LikeComment(
             url=DrukarniaEndpoints.LikeComment.format(
                 article_id=self.article_id,
                 comment_id=self.comment_id,
-            ),
+            ),    # type: ignore[str-format]
             data={},
             **kwargs,
         )

@@ -11,61 +11,61 @@ class SocialsDTO(BaseDTO):
     telegram: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://t.me/")
-        )
+            starts_with("https://t.me/"),
+        ),
     )
     instagram: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://instagram.com/")
-        )
+            starts_with("https://instagram.com/"),
+        ),
     )
 
     twitter: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://x.com/")
-        )
+            starts_with("https://x.com/"),
+        ),
     )
 
     bluesky: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://bsky.app/profile/")
-        )
+            starts_with("https://bsky.app/profile/"),
+        ),
     )
 
     facebook: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://facebook.com/")
-        )
+            starts_with("https://facebook.com/"),
+        ),
     )
 
     linkedin: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://linkedin.com/")
-        )
+            starts_with("https://linkedin.com/"),
+        ),
     )
 
     youtube: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://youtube.com/")
-        )
+            starts_with("https://youtube.com/"),
+        ),
     )
 
     tiktok: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://tiktok.com/")
-        )
+            starts_with("https://tiktok.com/"),
+        ),
     )
 
     website: Optional[str] = field(
         default=None,
         validator=validators.optional(
-            starts_with("https://")
-        )
+            starts_with("https://"),
+        ),
     )

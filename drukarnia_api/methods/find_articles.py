@@ -1,9 +1,10 @@
-from typing import Any, TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Any, Iterable
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.models import ArticleModel
 from drukarnia_api.methods.mixins import MixinWithPagination, MixinWithQuery
+from drukarnia_api.models import ArticleModel, SerializedModel, from_json
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -11,16 +12,16 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class FindArticle(
+class FindArticle(    # type: ignore[misc]
     MixinWithPagination,
     MixinWithQuery,
-    BaseMethod[Generator[ArticleModel, None, None]],
-): #
+    BaseMethod[Iterable[ArticleModel]],
+):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> Generator[ArticleModel, None, None]:
+    ) -> Iterable[ArticleModel]:
         response = await session.get(
             url=DrukarniaEndpoints.FindArticles,
             data={},
@@ -31,5 +32,8 @@ class FindArticle(
             **kwargs,
         )
 
-        records = await response.json()
-        return (ArticleModel.from_json(record) for record in records)
+        records: Iterable[SerializedModel] = await response.json()
+        return (
+            from_json(ArticleModel, record)
+            for record in records
+        )

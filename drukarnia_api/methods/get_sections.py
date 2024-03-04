@@ -1,9 +1,10 @@
-from typing import Any, TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Any, Iterable
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithPreviewOption
-from drukarnia_api.models import SectionModel
+from drukarnia_api.models import SectionModel, SerializedModel, from_json
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -13,13 +14,13 @@ if TYPE_CHECKING:
 @frozen(kw_only=True)
 class GetSections(
     MixinWithPreviewOption,
-    BaseMethod[Generator[SectionModel, None, None]],
+    BaseMethod[Iterable[SectionModel]],
 ):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> Generator[SectionModel, None, None]:
+    ) -> Iterable[SectionModel]:
         response = await session.get(
             url=DrukarniaEndpoints.GetSections,
             data={},
@@ -29,5 +30,8 @@ class GetSections(
             **kwargs,
         )
 
-        articles = await response.json()
-        return (SectionModel.from_json(article) for article in articles)
+        articles: Iterable[SerializedModel] = await response.json()
+        return (
+            from_json(SectionModel, article)
+            for article in articles
+        )

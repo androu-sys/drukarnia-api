@@ -1,9 +1,14 @@
-from typing import TypeVar, Optional, Any
-from drukarnia_api.models.tools import BaseModel, ModelRegistry
-from datetime import datetime
-from attrs import frozen, field, converters
-from enum import IntEnum
+from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import TYPE_CHECKING, Any, Self, TypeVar
+
+from drukarnia_api.models.tools import BaseModel, ModelRegistry
+from drukarnia_api.models.utils import optional_datetime_fromisoformat
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 C = TypeVar("C", bound="NotificationType")
 
@@ -15,30 +20,31 @@ class NotificationType(IntEnum):
     @classmethod
     def new_with_other_fallback(cls: type[C], value: int) -> C | int:
         try:
-            return NotificationType(value)
+            return cls(value)
         except KeyError:
             return value
 
 
-@frozen
+@dataclass(frozen=True, slots=True)
 class NotificationModel(BaseModel, metaclass=ModelRegistry):
     id_: str
-    owner: Optional[str] = None
-    type: Optional[NotificationType | int] = field(
-        converter=converters.optional(NotificationType.new_with_other_fallback),
-        default=None,
-    )
-    seen: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    is_liked: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    created_at: Optional[datetime] = field(
-        converter=converters.optional(datetime.fromisoformat),
-        default=None,
-    )
-    details: Optional[dict[str, Any]] = None
-    v__: Optional[int] = None
+    owner: str | None = None
+    type_: NotificationType | int | None = None
+    seen: bool | None = None
+    is_liked: bool | None = None
+    created_at: datetime | str | None = None
+    details: dict[str, Any] | None = None
+    v__: int | None = None
+
+    def __post_init__(self: Self) -> None:
+        object.__setattr__(
+            self,
+            "created_at",
+            optional_datetime_fromisoformat(self.created_at),
+        )
+        if self.type_ is not None:
+            object.__setattr__(
+                self,
+                "type_",
+                NotificationType.new_with_other_fallback(self.type_),
+            )

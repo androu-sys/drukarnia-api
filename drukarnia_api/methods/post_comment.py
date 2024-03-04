@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithArticleId, MixinWithCommentText
 from drukarnia_api.models import CommentModel
@@ -22,7 +23,7 @@ class PostComment(
         **kwargs: Any,
     ) -> CommentModel:
         response = await session.post(
-            url=DrukarniaEndpoints.PostComment.format(article_id=self.article_id),
+            url=DrukarniaEndpoints.PostComment.format(article_id=self.article_id),    # type: ignore[str-format]
             data={
                 "comment": self.comment_text,
             },
@@ -30,4 +31,7 @@ class PostComment(
         )
 
         posted_comment_id = await response.read()
-        return CommentModel(id_=posted_comment_id.decode('utf-8'))
+        return CommentModel(
+            id_=posted_comment_id.decode("utf-8"),
+            comment=self.comment_text,
+        )

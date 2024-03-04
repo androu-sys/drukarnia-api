@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from attrs import frozen, field, validators
+from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithSectionName
 from drukarnia_api.models import SectionModel
@@ -31,6 +32,6 @@ class CreateSection(
 
         section_id = await response.read()
         return SectionModel(
-            id_=section_id.decode('utf-8'),
+            id_=section_id.decode("utf-8"),
             name=self.section_name,
         )

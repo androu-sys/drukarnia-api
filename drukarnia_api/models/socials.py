@@ -1,9 +1,10 @@
+from dataclasses import dataclass
 from typing import Optional
+
 from drukarnia_api.models.tools import BaseModel, ModelRegistry
-from attrs import frozen
 
 
-@frozen
+@dataclass(frozen=True, slots=True)
 class SocialsModel(BaseModel, metaclass=ModelRegistry):
     telegram: Optional[str] = None
     instagram: Optional[str] = None

@@ -1,14 +1,15 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from attrs import frozen, field, validators
+from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.models import CommentModel
 from drukarnia_api.methods.mixins import (
     MixinWithArticleId,
-    MixinWithCommentId,
     MixinWithAuthorId,
+    MixinWithCommentId,
     MixinWithCommentText,
 )
+from drukarnia_api.models import CommentModel
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ class ReplyToComment(
             url=DrukarniaEndpoints.ReplyToComment.format(
                 article_id=self.article_id,
                 comment_id=self.comment_id,
-            ),
+            ),    # type: ignore[str-format]
             data={
                 "comment": self.comment_text,
                 "replyToComment": self.comment_id,
@@ -44,4 +45,7 @@ class ReplyToComment(
         )
 
         data = await response.read()
-        return CommentModel(id_=data.decode("utf-8"))
+        return CommentModel(
+            id_=data.decode("utf-8"),
+            comment=self.comment_text,
+        )

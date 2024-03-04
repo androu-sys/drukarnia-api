@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithTagId, MixinWithUnblockOption
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
@@ -21,9 +22,9 @@ class BlockTag(
         **kwargs: Any,
     ) -> None:
         await session.put(
-            url=DrukarniaEndpoints.BlockTag.format(tag_id=self.tag_id),
+            url=DrukarniaEndpoints.BlockTag.format(tag_id=self.tag_id),    # type: ignore[str-format]
             data={
-                "isBlocked": not self.unblock
+                "isBlocked": not self.unblock,
             },
             **kwargs,
         )

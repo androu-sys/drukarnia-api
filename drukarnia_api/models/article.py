@@ -1,66 +1,79 @@
-from typing import Optional, Union, Generator, Any, TYPE_CHECKING
-from datetime import datetime
-from attrs import frozen, field, converters
-from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
-from drukarnia_api.models.types import SerializedModel
-from drukarnia_api.models.relationship import AuthorRelationshipsModel
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Iterable, Self
+
+from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry, SerializedModel, from_json
+from drukarnia_api.models.utils import optional_datetime_fromisoformat
 
 if TYPE_CHECKING:
-    from drukarnia_api.models.tag import TagModel
+    from datetime import datetime
+
     from drukarnia_api.models.author import AuthorModel
     from drukarnia_api.models.comment import CommentModel
+    from drukarnia_api.models.relationship import AuthorRelationshipsModel
+    from drukarnia_api.models.tag import TagModel
 
 
-@frozen
-class _ArticlePreDescriptorModel(BaseModel):    # type: ignore[no-untyped-def]
+def _custom_loader_with_string_id(instance: type[BaseModel], value: SerializedModel | str) -> BaseModel:
+    if isinstance(value, str):
+        value = {"id_": value}
+
+    return from_json(instance, value)
+
+
+@dataclass(frozen=True, slots=True)
+class ArticleModel(BaseModel, metaclass=ModelRegistry):
     id_: str
-    title: Optional[str] = None
-    seo_title: Optional[str] = None
-    description: Optional[str] = None
-    picture: Optional[str] = None
-    thumb_picture: Optional[str] = None
-    main_tag: Optional[str] = None
-    main_tag_slug: Optional[str] = None
-    main_tag_id: Optional[str] = None
-    ads: Optional[bool] = None
-    index: Optional[bool] = None
-    sensitive: Optional[bool] = None
-    canonical: Optional[str] = None
-    like_num: Optional[int] = None
-    comment_num: Optional[int] = None
-    read_time: Optional[int] = None
-    slug: Optional[str] = None
-    content: Optional[dict[str, Any]] = None
-    created_at: Optional[datetime] = field(
-        converter=converters.optional(datetime.fromisoformat),
-        default=None,
-    )
-    i_liked: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    is_bookmarked: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    relationships: Optional[AuthorRelationshipsModel] = field(
-        converter=converters.optional(AuthorRelationshipsModel.from_json),
-        default=None,
-    )
+    title: str | None = None
+    seo_title: str | None = None
+    description: str | None = None
+    picture: str | None = None
+    thumb_picture: str | None = None
+    main_tag: str | None = None
+    main_tag_slug: str | None = None
+    main_tag_id: str | None = None
+    ads: bool | None = None
+    index: bool | None = None
+    sensitive: bool | None = None
+    canonical: str | None = None
+    like_num: int | None = None
+    comment_num: int | None = None
+    read_time: int | None = None
+    slug: str | None = None
+    content: dict[str, Any] | None = None
+    created_at: datetime | str | None = None
+    is_liked: bool | None = None
+    is_bookmarked: bool | None = None
 
-    tags: Optional[Generator[Union["TagModel", SerializedModel], None, None]] = None
-    author_articles: Optional[Generator[Union["ArticleModel", SerializedModel], None, None]] = None
-    owner: Optional[Union["AuthorModel", SerializedModel]] = field(
-        converter=converters.optional(lambda data: {"id_": data} if isinstance(data, str) else data),
-        default=None,
-    )
-    comments: Optional[Generator[Union["CommentModel", SerializedModel], None, None]] = None
-    recommended_articles: Optional[Generator[Union["ArticleModel", SerializedModel], None, None]] = None
+    relationships: Join[
+        SerializedModel | None,
+        AuthorRelationshipsModel | None,
+    ] = Join("AuthorRelationshipsModel")
+    tags: Join[
+        Iterable[SerializedModel] | None,
+        Iterable[TagModel] | None,
+    ] = Join("TagModel")
+    author_articles: Join[
+        Iterable[SerializedModel] | None,
+        Iterable[ArticleModel] | None,
+    ] = Join("ArticleModel")
+    owner: Join[
+        SerializedModel | None,
+        AuthorModel | None,
+    ] = Join("AuthorModel", loader=_custom_loader_with_string_id)
+    comments: Join[
+        Iterable[SerializedModel] | None,
+        Iterable[CommentModel] | None,
+    ] = Join("CommentModel")
+    recommended_articles: Join[
+        Iterable[SerializedModel] | None,
+        Iterable[ArticleModel] | None,
+    ] = Join("ArticleModel")
 
-
-class ArticleModel(_ArticlePreDescriptorModel, metaclass=ModelRegistry):
-    tags: Generator["TagModel", None, None] = Join("TagModel")
-    author_articles: Generator["ArticleModel", None, None] = Join("ArticleModel")
-    owner: "AuthorModel" = Join("AuthorModel")
-    comments: Generator["CommentModel", None, None] = Join("CommentModel")
-    recommended_articles: Generator["ArticleModel", None, None] = Join("ArticleModel")
+    def __post_init__(self: Self) -> None:
+        object.__setattr__(
+            self,
+            "created_at",
+            optional_datetime_fromisoformat(self.created_at),
+        )

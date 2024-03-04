@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithSectionId
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
@@ -20,7 +21,7 @@ class DeleteSection(
         **kwargs: Any,
     ) -> None:
         await session.delete(
-            url=DrukarniaEndpoints.DeleteSection.format(section_id=self.section_id),
+            url=DrukarniaEndpoints.DeleteSection.format(section_id=self.section_id),    # type: ignore[str-format]
             data={},
             **kwargs,
         )

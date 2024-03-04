@@ -1,25 +1,35 @@
-from typing import TypeVar, Type, Any
-from drukarnia_api.models.tools.base import BaseModel
+from __future__ import annotations
 
+from abc import ABCMeta
+from typing import Any, ClassVar, TypeVar
+
+from drukarnia_api.models.tools.base import BaseModel
 
 Self = TypeVar("Self", bound="ModelRegistry")
 
 
-class ModelRegistry(type):
-    _registry: dict[str, Type["BaseModel"]] = {}
+class ModelRegistry(ABCMeta):
+    _registry: ClassVar[dict[str, type[BaseModel]]] = {}
 
-    def __new__(cls: Type[Self], name: str, bases: tuple[Type["BaseModel"]], attrs: dict[str, Any]) -> Type["BaseModel"]:
+    def __new__(
+        cls: type[Self],
+        name: str,
+        bases: tuple[type[BaseModel]],
+        attrs: dict[str, Any],
+    ) -> type[BaseModel]:
         new_class = super().__new__(cls, name, bases, attrs)
 
         if not issubclass(new_class, BaseModel):
-            raise TypeError(f"model `{name}` does not inherit from `BaseModel`.")
+            msg = f"model `{name}` does not inherit from `BaseModel`."
+            raise TypeError(msg)
 
         cls._registry[name] = new_class
         return new_class
 
     @classmethod
-    def get_model(cls: Type[Self], name: str) -> Type["BaseModel"]:
+    def get_model(cls: type[Self], name: str) -> type[BaseModel]:
         if name in cls._registry:
             return cls._registry[name]
 
-        raise KeyError(f"No model named '{name}' found")
+        msg = f"No model named '{name}' found"
+        raise KeyError(msg)

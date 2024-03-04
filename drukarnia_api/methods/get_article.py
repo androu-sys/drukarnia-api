@@ -1,9 +1,10 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithArticleSlug
-from drukarnia_api.models import ArticleModel
+from drukarnia_api.models import ArticleModel, SerializedModel, from_json
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -21,10 +22,10 @@ class GetArticle(
         **kwargs: Any,
     ) -> ArticleModel:
         response = await session.get(
-            url=DrukarniaEndpoints.GetArticleInfo.format(slug=self.article_slug),
+            url=DrukarniaEndpoints.GetArticleInfo.format(slug=self.article_slug),    # type: ignore[str-format]
             data={},
             **kwargs,
         )
 
-        record = await response.json()
-        return ArticleModel.from_json(record)   # type: ignore[no-any-return]
+        record: SerializedModel = await response.json()
+        return from_json(ArticleModel, record)

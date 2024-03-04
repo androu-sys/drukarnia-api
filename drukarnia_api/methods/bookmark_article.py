@@ -1,4 +1,4 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attr import frozen
 
@@ -24,7 +24,7 @@ class BookmarkArticle(
     ) -> None:
         if self.unbookmark:
             await session.delete(
-                url=DrukarniaEndpoints.UnBookmarkArticle.format(article_id=self.article_id),
+                url=DrukarniaEndpoints.UnBookmarkArticle.format(article_id=self.article_id),    # type: ignore[str-format]
                 data={},
                 **kwargs,
             )

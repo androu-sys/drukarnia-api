@@ -1,36 +1,38 @@
-from typing import Optional, Union, TYPE_CHECKING
-from datetime import datetime
-from attrs import frozen, field, converters
-from drukarnia_api.models.types import SerializedModel
-from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Self
+
+from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry, SerializedModel
+from drukarnia_api.models.utils import optional_datetime_fromisoformat
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from drukarnia_api.models.author import AuthorModel
 
 
-@frozen
-class _CommentPreDescriptorModel(BaseModel):
+@dataclass(frozen=True, slots=True)
+class CommentModel(BaseModel, metaclass=ModelRegistry):
     id_: str
-    comment: Optional[str] = None
-    article: Optional[str] = None
-    hidden_by_author: Optional[bool] = None
-    reply_num: Optional[int] = None
-    likes_num: Optional[int] = None
-    created_at: Optional[datetime] = field(
-        converter=converters.optional(datetime.fromisoformat),
-        default=None,
-    )
-    is_liked: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    is_blocked: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    v__: Optional[int] = None
-    owner: Optional[Union["AuthorModel", SerializedModel]] = None
+    comment: str | None = None
+    article: str | None = None
+    hidden_by_author: bool | None = None
+    reply_num: int | None = None
+    likes_num: int | None = None
+    created_at: datetime | str | None = None
+    is_liked: bool | None = None
+    is_blocked: bool | None = None
+    v__: int | None = None
 
+    owner: Join[
+        SerializedModel | None,
+        AuthorModel | None,
+    ] = Join("AuthorModel")
 
-class CommentModel(_CommentPreDescriptorModel, metaclass=ModelRegistry):
-    owner: "AuthorModel" = Join("AuthorModel")
+    def __post_init__(self: Self) -> None:
+        object.__setattr__(
+            self,
+            "created_at",
+            optional_datetime_fromisoformat(self.created_at),
+        )

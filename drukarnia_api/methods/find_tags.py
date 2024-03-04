@@ -1,9 +1,10 @@
-from typing import Any, TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Any, Iterable
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.models import TagModel
 from drukarnia_api.methods.mixins import MixinWithPagination, MixinWithQuery
+from drukarnia_api.models import SerializedModel, TagModel, from_json
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -11,16 +12,16 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class FindTags(
+class FindTags(    # type: ignore[misc]
     MixinWithPagination,
     MixinWithQuery,
-    BaseMethod[Generator[TagModel, None, None]],
+    BaseMethod[Iterable[TagModel]],
 ):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> Generator[TagModel, None, None]:
+    ) -> Iterable[TagModel]:
         response = await session.get(
             url=DrukarniaEndpoints.FindTags,
             data={},
@@ -31,5 +32,8 @@ class FindTags(
             **kwargs,
         )
 
-        records = (await response.json())['tags']
-        return (TagModel.from_json(record) for record in records)
+        records: Iterable[SerializedModel] = (await response.json())["tags"]
+        return (
+            from_json(TagModel, record)
+            for record in records
+        )

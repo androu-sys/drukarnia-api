@@ -1,4 +1,4 @@
-from attr import frozen, field, validators
+from attr import field, frozen, validators
 
 
 @frozen(slots=False)

@@ -1,12 +1,12 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from attr import frozen
 
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.dto import UserInfoUpdate
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
+    from drukarnia_api.dto import UserInfoUpdate
     from drukarnia_api.network.session import DrukarniaSession
 
 

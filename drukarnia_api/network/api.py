@@ -1,5 +1,6 @@
-from typing import Self, Optional, Type, Any
 from types import TracebackType
+from typing import Any, Optional, Self, Type
+
 from drukarnia_api.methods.base import BaseMethod, ResultType
 from drukarnia_api.network.session import DrukarniaSession
 
@@ -9,7 +10,7 @@ class API:
         "_session",
     )
 
-    def __init__(self, session: Optional[DrukarniaSession] = None):
+    def __init__(self, session: Optional[DrukarniaSession] = None) -> None:
         self._session = session if session else DrukarniaSession()
 
     async def __call__(

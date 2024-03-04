@@ -1,6 +1,7 @@
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from attrs import frozen, field, validators
+from attrs import field, frozen, validators
+
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithCurrentPassword
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
@@ -31,7 +32,8 @@ class ChangeEmail(
         )
 
         data = await response.read()
-        success = data.decode('utf-8').lower() == "true"
+        success = data.decode("utf-8").lower() == "true"
 
         if success is False:
-            raise ValueError("Email update was not successful.")
+            msg = "Email update was not successful."
+            raise ValueError(msg)

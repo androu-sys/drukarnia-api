@@ -1,8 +1,9 @@
-from typing import Any, TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Any, Iterable
 
 from attrs import frozen
+
 from drukarnia_api.methods.base import BaseMethod
-from drukarnia_api.models import AuthorModel
+from drukarnia_api.models import AuthorModel, SerializedModel, from_json
 from drukarnia_api.network.endpoints import DrukarniaEndpoints
 
 if TYPE_CHECKING:
@@ -11,18 +12,21 @@ if TYPE_CHECKING:
 
 @frozen(kw_only=True)
 class GetBlockedAuthors(
-    BaseMethod[Generator[AuthorModel, None, None]],
+    BaseMethod[Iterable[AuthorModel]],
 ):
     async def _request(
         self,
         session: "DrukarniaSession",
         **kwargs: Any,
-    ) -> Generator[AuthorModel, None, None]:
+    ) -> Iterable[AuthorModel]:
         response = await session.get(
             url=DrukarniaEndpoints.GetBlockedAuthors,
             data={},
             **kwargs,
         )
 
-        authors_data = await response.json()
-        return (AuthorModel.from_json(author) for author in authors_data)
+        authors_data: Iterable[SerializedModel] = await response.json()
+        return (
+            from_json(AuthorModel, author)
+            for author in authors_data
+        )

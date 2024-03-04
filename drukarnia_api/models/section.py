@@ -1,47 +1,55 @@
-from typing import Optional, Union, Generator, TYPE_CHECKING
-from datetime import datetime
-from attrs import frozen, field, converters
-from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry
-from drukarnia_api.models.types import SerializedModel
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Iterable, Self
+
+from drukarnia_api.models.tools import BaseModel, Join, ModelRegistry, SerializedModel, from_json
+from drukarnia_api.models.utils import optional_datetime_fromisoformat
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from drukarnia_api.models.article import ArticleModel
 
 
-def _extract_article_dicts(data: list[SerializedModel] | SerializedModel) -> list[SerializedModel] | SerializedModel:
-    if isinstance(data, SerializedModel):
-        return data["article"]      # type: ignore[no-any-return]
+def _custom_loader_with_hidden_data(
+    instance: type[BaseModel],
+    value: SerializedModel | str,
+) -> BaseModel | Iterable[BaseModel]:
+    if isinstance(value, dict):
+        return from_json(instance, [value["article"]])
 
-    elif isinstance(data, list):
-        return [_extract_article_dicts(record) for record in data]
+    if isinstance(value, list):
+        return from_json(instance, (record["article"] for record in value))
 
-    raise TypeError(f"Expected list or dict got: `{type(data)}`")
+    msg = f"Expected list or dict got: `{type(value)}`"
+    raise TypeError(msg)
 
 
-@frozen
-class _BookmarkPreDescriptorModel(BaseModel):
+@dataclass(frozen=True, slots=True)
+class SectionModel(BaseModel, metaclass=ModelRegistry):
     id_: str
-    name: Optional[str] = None
-    articles_num: Optional[int] = None
-    owner: Optional[str] = None
-    created_at: Optional[datetime] = field(
-        converter=converters.optional(datetime.fromisoformat),
-        default=None,
-    )
-    updated_at: Optional[datetime] = field(
-        converter=converters.optional(datetime.fromisoformat),
-        default=None,
-    )
-    v__: Optional[int] = None
-    is_liked: Optional[bool] = field(
-        converter=converters.optional(bool),
-        default=None,
-    )
-    articles: Optional[Generator[Union["ArticleModel", SerializedModel], None, None]] = field(
-        converter=converters.optional(_extract_article_dicts),
-        default=None,
-    )
+    name: str | None = None
+    articles_num: int | None = None
+    owner: str | None = None
+    created_at: datetime | str | None = None
+    updated_at: datetime | str | None = None
+    v__: int | None = None
+    is_liked: bool | None = None
 
+    articles: Join[
+        Iterable[SerializedModel] | SerializedModel | None,
+        Iterable[ArticleModel] | None,
+    ] = Join("ArticleModel", _custom_loader_with_hidden_data)
 
-class SectionModel(_BookmarkPreDescriptorModel, metaclass=ModelRegistry):
-    articles: Generator["ArticleModel", None, None] = Join("ArticleModel")
+    def __post_init__(self: Self) -> None:
+        object.__setattr__(
+            self,
+            "created_at",
+            optional_datetime_fromisoformat(self.created_at),
+        )
+        object.__setattr__(
+            self,
+            "updated_at",
+            optional_datetime_fromisoformat(self.updated_at),
+        )
