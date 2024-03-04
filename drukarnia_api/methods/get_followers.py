@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from attrs import frozen, field
 from typing import TYPE_CHECKING, Any, Iterable
 
 from drukarnia_api.methods.base import BaseMethod
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@dataclass(kw_only=True)
+@frozen(kw_only=True)
 class GetFollowers(
     MixinWithPagination,
     MixinWithAuthorId,

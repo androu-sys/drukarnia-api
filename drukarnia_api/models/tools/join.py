@@ -14,6 +14,12 @@ RType = TypeVar("RType")
 
 
 class Join(Generic[IType, RType]):
+    __slots__ = (
+        "_model",
+        "_loader",
+        "_touched",
+        "_instance_field_name",
+    )
     _instance_field_name: str
 
     def __init__(

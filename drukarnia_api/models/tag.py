@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from drukarnia_api.models.article import ArticleModel
+    from drukarnia_api.models.relationship import AuthorRelationshipsModel
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,8 +25,12 @@ class TagModel(BaseModel, metaclass=ModelRegistry):
 
     articles: Join[
         Iterable[SerializedModel] | None,
-        Iterable[ArticleModel] | None,
+        Iterable["ArticleModel"] | None,
     ] = Join("ArticleModel")
+    relationships: Join[
+        Iterable[SerializedModel] | None,
+        "AuthorRelationshipsModel" | None
+    ] = Join("AuthorRelationshipsModel")
 
     def __post_init__(self: Self) -> None:
         object.__setattr__(

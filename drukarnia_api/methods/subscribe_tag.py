@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from attrs import frozen
 from typing import TYPE_CHECKING, Any
 
 from drukarnia_api.methods.base import BaseMethod
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from drukarnia_api.network.session import DrukarniaSession
 
 
-@dataclass(kw_only=True)
+@frozen(kw_only=True)
 class SubscribeToTag(
     MixinWithUnsubscribeOption,
     MixinWithTagId,
