@@ -22,6 +22,8 @@ ruff = "^0.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"
+python-dotenv = "^1.0.1"
+pytest-asyncio = "^0.23.5"
 
 [tool.mypy]
 strict = true
@@ -56,6 +58,8 @@ lint.ignore = [
     "D1", "D203", "D213", "FA102", "ANN101", "UP007", "FA100", "COM812", "ISC001", "ANN401"
 ]
 
+[tool.pytest.ini_options]
+python_files = "*.py"
 
 [build-system]
 requires = ["poetry-core"]

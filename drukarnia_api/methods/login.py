@@ -35,5 +35,9 @@ class Login(
             **kwargs,
         )
 
-        author_data: SerializedModel = await response.json()
-        return from_json(AuthorModel, author_data["user"])
+        author_data: SerializedModel = (await response.json())["user"]
+
+        # For some reason they send back the password's hash
+        del author_data["password"]
+
+        return from_json(AuthorModel, author_data)
