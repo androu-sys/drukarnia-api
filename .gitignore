@@ -13,6 +13,7 @@ drukarnia_api.egg-info
 .idea
 .DS_Store
 __pycache__
+.env
 
 # User-specific stuff
 .idea/**/workspace.xml
