@@ -2,6 +2,7 @@ import re
 from typing import Any, TypeVar
 
 D = TypeVar("D", bound=dict[str, Any])
+Attr = TypeVar("Attr", bound=Any)
 
 
 def _camel_to_snake(name: str) -> str:

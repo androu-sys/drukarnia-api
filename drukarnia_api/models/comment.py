@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class CommentModel(BaseModel, metaclass=ModelRegistry):
     id_: str
-    comment: str | None = None
+    comment: str
     article: str | None = None
     hidden_by_author: bool | None = None
     reply_num: int | None = None

@@ -43,6 +43,7 @@ from drukarnia_api.models import (
     TagModel,
 )
 from drukarnia_api.network import API
+from drukarnia_api.utils import getattr_throw_on_none
 
 if TYPE_CHECKING:
     from drukarnia_api.dto import UserInfoUpdate
@@ -140,6 +141,7 @@ class Drukarnia(API):
     async def block_tag(
         self,
         tag_id: str | TagModel,
+        *,
         unblock: bool = False
     ) -> None:
         if isinstance(tag_id, TagModel):
@@ -163,6 +165,7 @@ class Drukarnia(API):
     async def subscribe(
         self,
         author_id: AuthorModel | str,
+        *,
         unsubscribe: bool = False,
     ) -> None:
 
@@ -199,6 +202,7 @@ class Drukarnia(API):
     async def subscribe_to_tag(
         self,
         tag_id: str | TagModel,
+        *,
         unsubscribe: bool = False
     ) -> None:
         if isinstance(tag_id, TagModel):
@@ -230,6 +234,7 @@ class Drukarnia(API):
     async def block_author(
         self,
         author_id: str | AuthorModel,
+        *,
         unblock: bool = False
     ) -> None:
         if isinstance(author_id, AuthorModel):
@@ -251,11 +256,15 @@ class Drukarnia(API):
         self,
         article_slug: str | ArticleModel
     ) -> ArticleModel:
+        article_slug_str: str
+
         if isinstance(article_slug, ArticleModel):
-            article_slug = ArticleModel.slug
+            article_slug_str = getattr_throw_on_none(article_slug, "slug")
+        else:
+            article_slug_str = article_slug
 
         return await self(GetArticle(
-            article_slug=article_slug,
+            article_slug=article_slug_str,
         ))
 
     async def delete_section(
@@ -273,10 +282,15 @@ class Drukarnia(API):
         self,
         section_name: str | SectionModel,
     ) -> SectionModel:
+        section_name_str: str
+
         if isinstance(section_name, SectionModel):
-            section_name = SectionModel.name
+            section_name_str = getattr_throw_on_none(section_name, "name")
+        else:
+            section_name_str = section_name
+
         return await self(CreateSection(
-            section_name=section_name,
+            section_name=section_name_str,
         ))
 
     async def post_comment(
@@ -287,7 +301,7 @@ class Drukarnia(API):
         if isinstance(article_id, ArticleModel):
             article_id = article_id.id_
         if isinstance(comment_text, CommentModel):
-            comment_text = CommentModel.comment
+            comment_text = comment_text.comment
         return await self(PostComment(
             article_id=article_id,
             comment_text=comment_text,
@@ -341,6 +355,7 @@ class Drukarnia(API):
         self,
         article_id: str | ArticleModel,
         section_id: str | SectionModel,
+        *,
         unbookmark: bool = False
     ) -> None:
         if isinstance(article_id, ArticleModel):
@@ -357,16 +372,20 @@ class Drukarnia(API):
         self,
         username: str | AuthorModel,
     ) -> AuthorModel:
-        if isinstance(username, AuthorModel):
-            username = AuthorModel.username
+
+        username_str: str
+
+        username_str = getattr_throw_on_none(username, "username") if isinstance(username, AuthorModel) else username
+
         return await self(GetAuthor(
-            username=username,
+            username=username_str,
         ))
 
     async def like_comment(
         self,
         article_id: str | ArticleModel,
         comment_id: str | CommentModel,
+        *,
         unlike: bool = False
     ) -> None:
         if isinstance(article_id, ArticleModel):
@@ -393,15 +412,18 @@ class Drukarnia(API):
         self,
         tag_slug: str | TagModel,
     ) -> TagModel:
-        if isinstance(tag_slug, TagModel):
-            tag_slug = TagModel.slug
+        tag_slug_str: str
+
+        tag_slug_str = getattr_throw_on_none(tag_slug, "slug") if isinstance(tag_slug, TagModel) else tag_slug
+
         return await self(GetTag(
-            tag_slug=tag_slug,
+            tag_slug=tag_slug_str,
         ))
 
     async def find_author(
         self,
         query: str,
+        *,
         with_relations: bool = False,
         page: int = 1,
     ) -> Iterable[AuthorModel]:
@@ -413,6 +435,7 @@ class Drukarnia(API):
 
     async def get_sections(
         self,
+        *,
         preview: bool = False,
     ) -> Iterable[SectionModel]:
         return await self(GetSections(

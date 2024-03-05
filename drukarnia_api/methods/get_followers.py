@@ -1,5 +1,6 @@
-from attrs import frozen, field
 from typing import TYPE_CHECKING, Any, Iterable
+
+from attrs import field, frozen
 
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithAuthorId, MixinWithPagination
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class GetFollowers(
+class GetFollowers(   # type: ignore[misc]
     MixinWithPagination,
     MixinWithAuthorId,
     BaseMethod[Iterable[AuthorModel]],

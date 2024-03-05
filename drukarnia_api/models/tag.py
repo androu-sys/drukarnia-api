@@ -25,11 +25,11 @@ class TagModel(BaseModel, metaclass=ModelRegistry):
 
     articles: Join[
         Iterable[SerializedModel] | None,
-        Iterable["ArticleModel"] | None,
+        Iterable[ArticleModel] | None,
     ] = Join("ArticleModel")
     relationships: Join[
         Iterable[SerializedModel] | None,
-        "AuthorRelationshipsModel" | None
+        AuthorRelationshipsModel | None
     ] = Join("AuthorRelationshipsModel")
 
     def __post_init__(self: Self) -> None:

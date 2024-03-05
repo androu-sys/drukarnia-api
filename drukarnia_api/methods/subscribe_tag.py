@@ -1,5 +1,6 @@
-from attrs import frozen
 from typing import TYPE_CHECKING, Any
+
+from attrs import frozen
 
 from drukarnia_api.methods.base import BaseMethod
 from drukarnia_api.methods.mixins import MixinWithTagId, MixinWithUnsubscribeOption
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @frozen(kw_only=True)
-class SubscribeToTag(
+class SubscribeToTag(   # type: ignore[misc]
     MixinWithUnsubscribeOption,
     MixinWithTagId,
     BaseMethod[None],
