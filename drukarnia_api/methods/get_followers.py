@@ -35,6 +35,8 @@ class GetFollowers(   # type: ignore[misc]
         )
 
         authors: Iterable[SerializedModel] = await response.json()
+        import pprint
+        pprint.pprint(authors)
         return (
             from_json(AuthorModel, author)
             for author in authors

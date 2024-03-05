@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class AuthorModel(BaseModel, metaclass=ModelRegistry):
-    id_: str
+    id_: str | None = None
     name: str | None = None
     avatar: str | None = None
     username: str | None = None
@@ -28,6 +28,7 @@ class AuthorModel(BaseModel, metaclass=ModelRegistry):
     facebook_id: str | None = None
     google_id: str | None = None
     email: str | None = None
+    donate_url: str | None = None
     read_num: int | None = None
     v__: int | None = None
     notifications_num: int | None = None

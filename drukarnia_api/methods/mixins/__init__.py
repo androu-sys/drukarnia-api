@@ -9,13 +9,14 @@ from drukarnia_api.methods.mixins.with_bool_option import (
     MixinWithUnsubscribeOption,
 )
 from drukarnia_api.methods.mixins.with_comment import MixinWithCommentId, MixinWithCommentText
-from drukarnia_api.methods.mixins.with_pagination import MixinWithPagination
+from drukarnia_api.methods.mixins.with_pagination import MixinWithPagination, PAGE_SIZE
 from drukarnia_api.methods.mixins.with_password import MixinWithCurrentPassword
 from drukarnia_api.methods.mixins.with_query import MixinWithQuery
 from drukarnia_api.methods.mixins.with_section import MixinWithSectionId, MixinWithSectionName
 from drukarnia_api.methods.mixins.with_tag import MixinWithTagId, MixinWithTagSlug
 
 __all__ = [
+    "PAGE_SIZE",
     "MixinWithArticleId",
     "MixinWithCommentId",
     "MixinWithCommentText",

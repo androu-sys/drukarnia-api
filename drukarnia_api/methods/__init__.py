@@ -31,8 +31,10 @@ from drukarnia_api.methods.post_comment import PostComment
 from drukarnia_api.methods.reply import ReplyToComment
 from drukarnia_api.methods.subscribe_author import SubscribeToAuthor
 from drukarnia_api.methods.subscribe_tag import SubscribeToTag
+from drukarnia_api.methods.mixins import PAGE_SIZE
 
 __all__ = [
+    "PAGE_SIZE",
     "BlockTag",
     "ChangePassword",
     "SubscribeToAuthor",
